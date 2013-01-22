@@ -1,0 +1,6 @@
+Specification-Title: bigqueue
+Specification-Version: 0.1
+Specification-Vendor: leansoft
+Implementation-Version: 0.1
+Implementation-Vendor: leansoft
+Implementation-Title: big, fast and persistent queue
