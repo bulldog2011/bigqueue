@@ -33,10 +33,10 @@ public class BigQueuePerfTest {
 	// configurable parameters
 	//////////////////////////////////////////////////////////////////
 	private static int loop = 5;
-	private static int totalItemCount = 1000000;
-	private static int producerNum = 4;
-	private static int consumerNum = 4;
-	private static int messageLength = 1024;
+	private static int totalItemCount = 10000000;
+	private static int producerNum = 2;
+	private static int consumerNum = 2;
+	private static int messageLength = 10;
 	private static TestType testType = TestType.BIG_QUEUE_TEST;
 	//////////////////////////////////////////////////////////////////
 	
