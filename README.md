@@ -24,6 +24,6 @@ Suppose the average message size is 1KB, then big queue can concurrently produci
 ###Docs
 
 1. [a simple design doc](http://bulldog2011.github.com/blog/2013/01/23/big-queue-design/)
-2. [big queue tutorial](http://bulldog2011.github.com/blog/2013/01/24/big-array-tutorial/)
-3. [big array tutorial](http://bulldog2011.github.com/blog/2013/01/24/big-queue-tutorial/)
+2. [big queue tutorial](http://bulldog2011.github.com/blog/2013/01/24/big-queue-tutorial/)
+3. [big array tutorial](http://bulldog2011.github.com/blog/2013/01/24/big-array-tutorial/)
 
