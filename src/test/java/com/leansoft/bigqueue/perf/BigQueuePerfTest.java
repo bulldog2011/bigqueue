@@ -36,7 +36,7 @@ public class BigQueuePerfTest {
 	private static int totalItemCount = 10000000;
 	private static int producerNum = 2;
 	private static int consumerNum = 2;
-	private static int messageLength = 10;
+	private static int messageLength = 1024;
 	private static TestType testType = TestType.BIG_QUEUE_TEST;
 	//////////////////////////////////////////////////////////////////
 	
