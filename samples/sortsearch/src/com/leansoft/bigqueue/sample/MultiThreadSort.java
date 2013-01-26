@@ -19,10 +19,10 @@ public class MultiThreadSort {
 	
 	// configurable parameters, adjust them according to your environment and requirements
 	//////////////////////////////////////////////////////////////////
-	// max number of items can be sorted in memory in a one pass
+	// max number of items can be sorted in memory in one pass
 	static int maxInMemSortNumOfItems = 1024 * 1024 * 20;
 	// max number of items to be sorted and searched
-	static long maxNumOfItems = maxInMemSortNumOfItems * 32;
+	static long maxNumOfItems = maxInMemSortNumOfItems * 64;
 	// bytes per item
 	static int itemSize = 100;
 	// ways to merge sort in parallel, must >= 2;

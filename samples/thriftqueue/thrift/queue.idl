@@ -1,0 +1,18 @@
+namespace java com.leansoft.bigqueue.thrift
+namespace csharp Leansoft.BigQueue.Thrift
+
+struct QueueRequest {
+    1: required binary data
+}
+
+struct QueueResponse {
+    1: required binary data 
+}
+
+service BigQueueService {
+    void enqueue(1:QueueRequest req);
+    QueueResponse dequeue();
+    QueueResponse peek();
+    i64 size();
+    bool isEmpty();
+}
