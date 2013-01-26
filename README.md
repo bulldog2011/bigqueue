@@ -1,7 +1,7 @@
 bigqueue
 ========
 
-A big, fast and persistent queue implemented Java using memory mapped technology.
+A big, fast and persistent queue based on memory mapped file.
 
 ###Feature Highlights:  
 1. **Fast**: close to the speed of direct memory access, both enqueue and dequeue are close to O(1) memory access.  
