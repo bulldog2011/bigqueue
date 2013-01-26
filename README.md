@@ -12,8 +12,8 @@ A big, fast and persistent queue based on memory mapped file.
 6. **Simple&Light-weight**: current number of source files is 12 and the library jar is less than 20K.
 
 ###Performance:
-* In concurrent producing and consuming case, the average throughput is around ***166MBps***.
-* In sequential producing then consuming case, the average throughput is around ***333MBps***.
+* In concurrent producing and consuming case, the average throughput is around ***166M bytes per second***.
+* In sequential producing then consuming case, the average throughput is around ***333M bytes per second***.
 
 Suppose the average message size is 1KB, then big queue can concurrently producing and consuming  
 166K message per second. Basically, the throughput is only limited by disk IO bandwidth.
