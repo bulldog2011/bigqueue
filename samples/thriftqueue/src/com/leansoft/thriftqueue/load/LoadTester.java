@@ -15,10 +15,10 @@ import com.leansoft.thriftqueue.load.helper.RandomLogGenerator;
 
 public class LoadTester {
 	
-	static final int INNER_LOOP = 200;
-	static final int OUTTER_LOOP = 100;
-	static final int PRODUCER_THREAD_NUM = 100;
-	static final int CONSUMER_THREAD_NUM = 100;
+	static final int INNER_LOOP = 1000;
+	static final int OUTTER_LOOP = 1000;
+	static final int PRODUCER_THREAD_NUM = 50;
+	static final int CONSUMER_THREAD_NUM = 50;
 	static final int LOG_MESSAGE_SIZE_LIMIT = 4 * 1024; // this is the max size, average log message size should / 2 
 
 	/**
