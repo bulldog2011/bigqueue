@@ -11,6 +11,7 @@ import com.leansoft.bigqueue.IBigQueue;
 import com.leansoft.bigqueue.thrift.BigQueueService;
 import com.leansoft.bigqueue.thrift.QueueRequest;
 import com.leansoft.bigqueue.thrift.QueueResponse;
+import com.leansoft.bigqueue.thrift.ResultCode;
 
 /**
  * Big queue service thrift implementation
@@ -33,8 +34,12 @@ public class ThriftQueueServiceImpl implements BigQueueService.Iface {
 	}
 
 	@Override
-	public void enqueue(String topic, QueueRequest req) throws TException {
-		if (topic == null) return; // ignore
+	public QueueResponse enqueue(String topic, QueueRequest req) throws TException {
+		QueueResponse resp = new QueueResponse();
+		if (topic == null) {
+			resp.setResultCode(ResultCode.FAILURE);
+			return resp;
+		}
 		IBigQueue bigQueue = queueMap.get(topic);
 		if (bigQueue == null) {
 			synchronized(lock) {
@@ -44,7 +49,8 @@ public class ThriftQueueServiceImpl implements BigQueueService.Iface {
 						bigQueue = new BigQueueImpl(queueDir, topic);
 						queueMap.put(topic, bigQueue);
 					} catch (IOException e) {
-						throw new TException(e);
+						resp.setResultCode(ResultCode.FAILURE);
+						return resp;
 					}
 				}
 			}
@@ -54,40 +60,49 @@ public class ThriftQueueServiceImpl implements BigQueueService.Iface {
 			try {
 				bigQueue.enqueue(req.getData());
 			} catch (IOException e) {
-				throw new TException(e);
+				resp.setResultCode(ResultCode.FAILURE);
+				return resp;
 			}
+			resp.setResultCode(ResultCode.SUCCESS);
+			return resp;
+		} else {
+			resp.setResultCode(ResultCode.FAILURE);
+			return resp;
 		}
-		
 	}
 
 	@Override
 	public QueueResponse dequeue(String topic) throws TException {
-		IBigQueue bigQueue = queueMap.get(topic);
+		QueueResponse resp = new QueueResponse();
 		byte[] data = null;
+		IBigQueue bigQueue = queueMap.get(topic);
 		if (bigQueue != null) {
 			try {
 				data = bigQueue.dequeue();
 			} catch (IOException e) {
-				throw new TException(e);
+				resp.setResultCode(ResultCode.FAILURE);
+				return resp;
 			}
 		}
-		QueueResponse resp = new QueueResponse();
+		resp.setResultCode(ResultCode.SUCCESS);
 		resp.setData(data);
 		return resp;
 	}
 
 	@Override
 	public QueueResponse peek(String topic) throws TException {
-		IBigQueue bigQueue = queueMap.get(topic);
+		QueueResponse resp = new QueueResponse();
 		byte[] data = null;
+		IBigQueue bigQueue = queueMap.get(topic);
 		if (bigQueue != null) {
 			try {
 				data = bigQueue.peek();
 			} catch (IOException e) {
-				throw new TException(e);
+				resp.setResultCode(ResultCode.FAILURE);
+				return resp;
 			}
 		}
-		QueueResponse resp = new QueueResponse();
+		resp.setResultCode(ResultCode.SUCCESS);
 		resp.setData(data);
 		return resp;
 	}

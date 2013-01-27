@@ -46,6 +46,7 @@
     <Compile Include="Gen\Leansoft\BigQueue\Thrift\BigQueueService.cs" />
     <Compile Include="Gen\Leansoft\BigQueue\Thrift\QueueRequest.cs" />
     <Compile Include="Gen\Leansoft\BigQueue\Thrift\QueueResponse.cs" />
+    <Compile Include="Gen\Leansoft\BigQueue\Thrift\ResultCode.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

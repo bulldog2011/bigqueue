@@ -24,7 +24,7 @@ public class BigQueueService {
 
   public interface Iface {
 
-    public void enqueue(String topic, QueueRequest req) throws org.apache.thrift.TException;
+    public QueueResponse enqueue(String topic, QueueRequest req) throws org.apache.thrift.TException;
 
     public QueueResponse dequeue(String topic) throws org.apache.thrift.TException;
 
@@ -87,10 +87,10 @@ public class BigQueueService {
       return this.oprot_;
     }
 
-    public void enqueue(String topic, QueueRequest req) throws org.apache.thrift.TException
+    public QueueResponse enqueue(String topic, QueueRequest req) throws org.apache.thrift.TException
     {
       send_enqueue(topic, req);
-      recv_enqueue();
+      return recv_enqueue();
     }
 
     public void send_enqueue(String topic, QueueRequest req) throws org.apache.thrift.TException
@@ -104,7 +104,7 @@ public class BigQueueService {
       oprot_.getTransport().flush();
     }
 
-    public void recv_enqueue() throws org.apache.thrift.TException
+    public QueueResponse recv_enqueue() throws org.apache.thrift.TException
     {
       org.apache.thrift.protocol.TMessage msg = iprot_.readMessageBegin();
       if (msg.type == org.apache.thrift.protocol.TMessageType.EXCEPTION) {
@@ -118,7 +118,10 @@ public class BigQueueService {
       enqueue_result result = new enqueue_result();
       result.read(iprot_);
       iprot_.readMessageEnd();
-      return;
+      if (result.isSetSuccess()) {
+        return result.success;
+      }
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "enqueue failed: unknown result");
     }
 
     public QueueResponse dequeue(String topic) throws org.apache.thrift.TException
@@ -308,13 +311,13 @@ public class BigQueueService {
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws org.apache.thrift.TException {
+      public QueueResponse getResult() throws org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        (new Client(prot)).recv_enqueue();
+        return (new Client(prot)).recv_enqueue();
       }
     }
 
@@ -502,7 +505,7 @@ public class BigQueueService {
         }
         iprot.readMessageEnd();
         enqueue_result result = new enqueue_result();
-        iface_.enqueue(args.topic, args.req);
+        result.success = iface_.enqueue(args.topic, args.req);
         oprot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("enqueue", org.apache.thrift.protocol.TMessageType.REPLY, seqid));
         result.write(oprot);
         oprot.writeMessageEnd();
@@ -1009,11 +1012,13 @@ public class BigQueueService {
   public static class enqueue_result implements org.apache.thrift.TBase<enqueue_result, enqueue_result._Fields>, java.io.Serializable, Cloneable   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("enqueue_result");
 
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
 
+    public QueueResponse success;
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-;
+      SUCCESS((short)0, "success");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -1028,6 +1033,8 @@ public class BigQueueService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
+          case 0: // SUCCESS
+            return SUCCESS;
           default:
             return null;
         }
@@ -1066,9 +1073,14 @@ public class BigQueueService {
         return _fieldName;
       }
     }
+
+    // isset id assignments
+
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, QueueResponse.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(enqueue_result.class, metaDataMap);
     }
@@ -1076,10 +1088,20 @@ public class BigQueueService {
     public enqueue_result() {
     }
 
+    public enqueue_result(
+      QueueResponse success)
+    {
+      this();
+      this.success = success;
+    }
+
     /**
      * Performs a deep copy on <i>other</i>.
      */
     public enqueue_result(enqueue_result other) {
+      if (other.isSetSuccess()) {
+        this.success = new QueueResponse(other.success);
+      }
     }
 
     public enqueue_result deepCopy() {
@@ -1088,15 +1110,51 @@ public class BigQueueService {
 
     @Override
     public void clear() {
+      this.success = null;
+    }
+
+    public QueueResponse getSuccess() {
+      return this.success;
+    }
+
+    public enqueue_result setSuccess(QueueResponse success) {
+      this.success = success;
+      return this;
+    }
+
+    public void unsetSuccess() {
+      this.success = null;
+    }
+
+    /** Returns true if field success is set (has been assigned a value) and false otherwise */
+    public boolean isSetSuccess() {
+      return this.success != null;
+    }
+
+    public void setSuccessIsSet(boolean value) {
+      if (!value) {
+        this.success = null;
+      }
     }
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
+      case SUCCESS:
+        if (value == null) {
+          unsetSuccess();
+        } else {
+          setSuccess((QueueResponse)value);
+        }
+        break;
+
       }
     }
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
+      case SUCCESS:
+        return getSuccess();
+
       }
       throw new IllegalStateException();
     }
@@ -1108,6 +1166,8 @@ public class BigQueueService {
       }
 
       switch (field) {
+      case SUCCESS:
+        return isSetSuccess();
       }
       throw new IllegalStateException();
     }
@@ -1125,6 +1185,15 @@ public class BigQueueService {
       if (that == null)
         return false;
 
+      boolean this_present_success = true && this.isSetSuccess();
+      boolean that_present_success = true && that.isSetSuccess();
+      if (this_present_success || that_present_success) {
+        if (!(this_present_success && that_present_success))
+          return false;
+        if (!this.success.equals(that.success))
+          return false;
+      }
+
       return true;
     }
 
@@ -1141,6 +1210,16 @@ public class BigQueueService {
       int lastComparison = 0;
       enqueue_result typedOther = (enqueue_result)other;
 
+      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(typedOther.isSetSuccess());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetSuccess()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, typedOther.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       return 0;
     }
 
@@ -1158,6 +1237,14 @@ public class BigQueueService {
           break;
         }
         switch (field.id) {
+          case 0: // SUCCESS
+            if (field.type == org.apache.thrift.protocol.TType.STRUCT) {
+              this.success = new QueueResponse();
+              this.success.read(iprot);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
         }
@@ -1172,6 +1259,11 @@ public class BigQueueService {
     public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
       oprot.writeStructBegin(STRUCT_DESC);
 
+      if (this.isSetSuccess()) {
+        oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
+        this.success.write(oprot);
+        oprot.writeFieldEnd();
+      }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -1181,6 +1273,13 @@ public class BigQueueService {
       StringBuilder sb = new StringBuilder("enqueue_result(");
       boolean first = true;
 
+      sb.append("success:");
+      if (this.success == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.success);
+      }
+      first = false;
       sb.append(")");
       return sb.toString();
     }

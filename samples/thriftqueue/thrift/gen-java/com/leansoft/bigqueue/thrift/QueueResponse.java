@@ -23,13 +23,24 @@ import org.slf4j.LoggerFactory;
 public class QueueResponse implements org.apache.thrift.TBase<QueueResponse, QueueResponse._Fields>, java.io.Serializable, Cloneable {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("QueueResponse");
 
-  private static final org.apache.thrift.protocol.TField DATA_FIELD_DESC = new org.apache.thrift.protocol.TField("data", org.apache.thrift.protocol.TType.STRING, (short)1);
+  private static final org.apache.thrift.protocol.TField RESULT_CODE_FIELD_DESC = new org.apache.thrift.protocol.TField("resultCode", org.apache.thrift.protocol.TType.I32, (short)1);
+  private static final org.apache.thrift.protocol.TField DATA_FIELD_DESC = new org.apache.thrift.protocol.TField("data", org.apache.thrift.protocol.TType.STRING, (short)2);
 
+  /**
+   * 
+   * @see ResultCode
+   */
+  public ResultCode resultCode;
   public ByteBuffer data;
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-    DATA((short)1, "data");
+    /**
+     * 
+     * @see ResultCode
+     */
+    RESULT_CODE((short)1, "resultCode"),
+    DATA((short)2, "data");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -44,7 +55,9 @@ public class QueueResponse implements org.apache.thrift.TBase<QueueResponse, Que
      */
     public static _Fields findByThriftId(int fieldId) {
       switch(fieldId) {
-        case 1: // DATA
+        case 1: // RESULT_CODE
+          return RESULT_CODE;
+        case 2: // DATA
           return DATA;
         default:
           return null;
@@ -90,7 +103,9 @@ public class QueueResponse implements org.apache.thrift.TBase<QueueResponse, Que
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.DATA, new org.apache.thrift.meta_data.FieldMetaData("data", org.apache.thrift.TFieldRequirementType.REQUIRED, 
+    tmpMap.put(_Fields.RESULT_CODE, new org.apache.thrift.meta_data.FieldMetaData("resultCode", org.apache.thrift.TFieldRequirementType.REQUIRED, 
+        new org.apache.thrift.meta_data.EnumMetaData(org.apache.thrift.protocol.TType.ENUM, ResultCode.class)));
+    tmpMap.put(_Fields.DATA, new org.apache.thrift.meta_data.FieldMetaData("data", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING        , true)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(QueueResponse.class, metaDataMap);
@@ -100,9 +115,11 @@ public class QueueResponse implements org.apache.thrift.TBase<QueueResponse, Que
   }
 
   public QueueResponse(
+    ResultCode resultCode,
     ByteBuffer data)
   {
     this();
+    this.resultCode = resultCode;
     this.data = data;
   }
 
@@ -110,6 +127,9 @@ public class QueueResponse implements org.apache.thrift.TBase<QueueResponse, Que
    * Performs a deep copy on <i>other</i>.
    */
   public QueueResponse(QueueResponse other) {
+    if (other.isSetResultCode()) {
+      this.resultCode = other.resultCode;
+    }
     if (other.isSetData()) {
       this.data = org.apache.thrift.TBaseHelper.copyBinary(other.data);
 ;
@@ -122,7 +142,40 @@ public class QueueResponse implements org.apache.thrift.TBase<QueueResponse, Que
 
   @Override
   public void clear() {
+    this.resultCode = null;
     this.data = null;
+  }
+
+  /**
+   * 
+   * @see ResultCode
+   */
+  public ResultCode getResultCode() {
+    return this.resultCode;
+  }
+
+  /**
+   * 
+   * @see ResultCode
+   */
+  public QueueResponse setResultCode(ResultCode resultCode) {
+    this.resultCode = resultCode;
+    return this;
+  }
+
+  public void unsetResultCode() {
+    this.resultCode = null;
+  }
+
+  /** Returns true if field resultCode is set (has been assigned a value) and false otherwise */
+  public boolean isSetResultCode() {
+    return this.resultCode != null;
+  }
+
+  public void setResultCodeIsSet(boolean value) {
+    if (!value) {
+      this.resultCode = null;
+    }
   }
 
   public byte[] getData() {
@@ -161,6 +214,14 @@ public class QueueResponse implements org.apache.thrift.TBase<QueueResponse, Que
 
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
+    case RESULT_CODE:
+      if (value == null) {
+        unsetResultCode();
+      } else {
+        setResultCode((ResultCode)value);
+      }
+      break;
+
     case DATA:
       if (value == null) {
         unsetData();
@@ -174,6 +235,9 @@ public class QueueResponse implements org.apache.thrift.TBase<QueueResponse, Que
 
   public Object getFieldValue(_Fields field) {
     switch (field) {
+    case RESULT_CODE:
+      return getResultCode();
+
     case DATA:
       return getData();
 
@@ -188,6 +252,8 @@ public class QueueResponse implements org.apache.thrift.TBase<QueueResponse, Que
     }
 
     switch (field) {
+    case RESULT_CODE:
+      return isSetResultCode();
     case DATA:
       return isSetData();
     }
@@ -206,6 +272,15 @@ public class QueueResponse implements org.apache.thrift.TBase<QueueResponse, Que
   public boolean equals(QueueResponse that) {
     if (that == null)
       return false;
+
+    boolean this_present_resultCode = true && this.isSetResultCode();
+    boolean that_present_resultCode = true && that.isSetResultCode();
+    if (this_present_resultCode || that_present_resultCode) {
+      if (!(this_present_resultCode && that_present_resultCode))
+        return false;
+      if (!this.resultCode.equals(that.resultCode))
+        return false;
+    }
 
     boolean this_present_data = true && this.isSetData();
     boolean that_present_data = true && that.isSetData();
@@ -232,6 +307,16 @@ public class QueueResponse implements org.apache.thrift.TBase<QueueResponse, Que
     int lastComparison = 0;
     QueueResponse typedOther = (QueueResponse)other;
 
+    lastComparison = Boolean.valueOf(isSetResultCode()).compareTo(typedOther.isSetResultCode());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetResultCode()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.resultCode, typedOther.resultCode);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     lastComparison = Boolean.valueOf(isSetData()).compareTo(typedOther.isSetData());
     if (lastComparison != 0) {
       return lastComparison;
@@ -259,7 +344,14 @@ public class QueueResponse implements org.apache.thrift.TBase<QueueResponse, Que
         break;
       }
       switch (field.id) {
-        case 1: // DATA
+        case 1: // RESULT_CODE
+          if (field.type == org.apache.thrift.protocol.TType.I32) {
+            this.resultCode = ResultCode.findByValue(iprot.readI32());
+          } else { 
+            org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
+          }
+          break;
+        case 2: // DATA
           if (field.type == org.apache.thrift.protocol.TType.STRING) {
             this.data = iprot.readBinary();
           } else { 
@@ -281,6 +373,11 @@ public class QueueResponse implements org.apache.thrift.TBase<QueueResponse, Que
     validate();
 
     oprot.writeStructBegin(STRUCT_DESC);
+    if (this.resultCode != null) {
+      oprot.writeFieldBegin(RESULT_CODE_FIELD_DESC);
+      oprot.writeI32(this.resultCode.getValue());
+      oprot.writeFieldEnd();
+    }
     if (this.data != null) {
       oprot.writeFieldBegin(DATA_FIELD_DESC);
       oprot.writeBinary(this.data);
@@ -295,6 +392,14 @@ public class QueueResponse implements org.apache.thrift.TBase<QueueResponse, Que
     StringBuilder sb = new StringBuilder("QueueResponse(");
     boolean first = true;
 
+    sb.append("resultCode:");
+    if (this.resultCode == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.resultCode);
+    }
+    first = false;
+    if (!first) sb.append(", ");
     sb.append("data:");
     if (this.data == null) {
       sb.append("null");
@@ -308,8 +413,8 @@ public class QueueResponse implements org.apache.thrift.TBase<QueueResponse, Que
 
   public void validate() throws org.apache.thrift.TException {
     // check for required fields
-    if (data == null) {
-      throw new org.apache.thrift.protocol.TProtocolException("Required field 'data' was not present! Struct: " + toString());
+    if (resultCode == null) {
+      throw new org.apache.thrift.protocol.TProtocolException("Required field 'resultCode' was not present! Struct: " + toString());
     }
   }
 

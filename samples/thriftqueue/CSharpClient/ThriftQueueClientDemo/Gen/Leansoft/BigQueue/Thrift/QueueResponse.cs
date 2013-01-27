@@ -18,7 +18,21 @@ namespace Leansoft.BigQueue.Thrift
   [Serializable]
   public partial class QueueResponse : TBase
   {
+    private ResultCode _resultCode;
     private byte[] _data;
+
+    public ResultCode ResultCode
+    {
+      get
+      {
+        return _resultCode;
+      }
+      set
+      {
+        __isset.resultCode = true;
+        this._resultCode = value;
+      }
+    }
 
     public byte[] Data
     {
@@ -37,6 +51,7 @@ namespace Leansoft.BigQueue.Thrift
     public Isset __isset;
     [Serializable]
     public struct Isset {
+      public bool resultCode;
       public bool data;
     }
 
@@ -56,6 +71,13 @@ namespace Leansoft.BigQueue.Thrift
         switch (field.ID)
         {
           case 1:
+            if (field.Type == TType.I32) {
+              ResultCode = (ResultCode)iprot.ReadI32();
+            } else { 
+              TProtocolUtil.Skip(iprot, field.Type);
+            }
+            break;
+          case 2:
             if (field.Type == TType.String) {
               Data = iprot.ReadBinary();
             } else { 
@@ -75,10 +97,18 @@ namespace Leansoft.BigQueue.Thrift
       TStruct struc = new TStruct("QueueResponse");
       oprot.WriteStructBegin(struc);
       TField field = new TField();
+      if (__isset.resultCode) {
+        field.Name = "resultCode";
+        field.Type = TType.I32;
+        field.ID = 1;
+        oprot.WriteFieldBegin(field);
+        oprot.WriteI32((int)ResultCode);
+        oprot.WriteFieldEnd();
+      }
       if (Data != null && __isset.data) {
         field.Name = "data";
         field.Type = TType.String;
-        field.ID = 1;
+        field.ID = 2;
         oprot.WriteFieldBegin(field);
         oprot.WriteBinary(Data);
         oprot.WriteFieldEnd();
@@ -89,7 +119,9 @@ namespace Leansoft.BigQueue.Thrift
 
     public override string ToString() {
       StringBuilder sb = new StringBuilder("QueueResponse(");
-      sb.Append("Data: ");
+      sb.Append("ResultCode: ");
+      sb.Append(ResultCode);
+      sb.Append(",Data: ");
       sb.Append(Data);
       sb.Append(")");
       return sb.ToString();

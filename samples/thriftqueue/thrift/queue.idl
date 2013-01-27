@@ -5,12 +5,19 @@ struct QueueRequest {
     1: required binary data
 }
 
+enum ResultCode
+{
+  SUCCESS,
+  FAILURE
+}
+
 struct QueueResponse {
-    1: required binary data 
+    1: required ResultCode resultCode,
+    2: binary data 
 }
 
 service BigQueueService {
-    void enqueue(1:string topic, 2:QueueRequest req);
+    QueueResponse enqueue(1:string topic, 2:QueueRequest req);
     QueueResponse dequeue(1:string topic);
     QueueResponse peek(1:string topic);
     i64 getSize(1:string topic);

@@ -16,7 +16,7 @@ namespace Leansoft.BigQueue.Thrift
 {
   public class BigQueueService {
     public interface Iface {
-      void enqueue(string topic, QueueRequest req);
+      QueueResponse enqueue(string topic, QueueRequest req);
       QueueResponse dequeue(string topic);
       QueueResponse peek(string topic);
       long getSize(string topic);
@@ -48,10 +48,10 @@ namespace Leansoft.BigQueue.Thrift
       }
 
 
-      public void enqueue(string topic, QueueRequest req)
+      public QueueResponse enqueue(string topic, QueueRequest req)
       {
         send_enqueue(topic, req);
-        recv_enqueue();
+        return recv_enqueue();
       }
 
       public void send_enqueue(string topic, QueueRequest req)
@@ -65,7 +65,7 @@ namespace Leansoft.BigQueue.Thrift
         oprot_.Transport.Flush();
       }
 
-      public void recv_enqueue()
+      public QueueResponse recv_enqueue()
       {
         TMessage msg = iprot_.ReadMessageBegin();
         if (msg.Type == TMessageType.Exception) {
@@ -76,7 +76,10 @@ namespace Leansoft.BigQueue.Thrift
         enqueue_result result = new enqueue_result();
         result.Read(iprot_);
         iprot_.ReadMessageEnd();
-        return;
+        if (result.__isset.success) {
+          return result.Success;
+        }
+        throw new TApplicationException(TApplicationException.ExceptionType.MissingResult, "enqueue failed: unknown result");
       }
 
       public QueueResponse dequeue(string topic)
@@ -259,7 +262,7 @@ namespace Leansoft.BigQueue.Thrift
         args.Read(iprot);
         iprot.ReadMessageEnd();
         enqueue_result result = new enqueue_result();
-        iface_.enqueue(args.Topic, args.Req);
+        result.Success = iface_.enqueue(args.Topic, args.Req);
         oprot.WriteMessageBegin(new TMessage("enqueue", TMessageType.Reply, seqid)); 
         result.Write(oprot);
         oprot.WriteMessageEnd();
@@ -440,6 +443,27 @@ namespace Leansoft.BigQueue.Thrift
     [Serializable]
     public partial class enqueue_result : TBase
     {
+      private QueueResponse _success;
+
+      public QueueResponse Success
+      {
+        get
+        {
+          return _success;
+        }
+        set
+        {
+          __isset.success = true;
+          this._success = value;
+        }
+      }
+
+
+      public Isset __isset;
+      [Serializable]
+      public struct Isset {
+        public bool success;
+      }
 
       public enqueue_result() {
       }
@@ -456,6 +480,14 @@ namespace Leansoft.BigQueue.Thrift
           }
           switch (field.ID)
           {
+            case 0:
+              if (field.Type == TType.Struct) {
+                Success = new QueueResponse();
+                Success.Read(iprot);
+              } else { 
+                TProtocolUtil.Skip(iprot, field.Type);
+              }
+              break;
             default: 
               TProtocolUtil.Skip(iprot, field.Type);
               break;
@@ -468,13 +500,26 @@ namespace Leansoft.BigQueue.Thrift
       public void Write(TProtocol oprot) {
         TStruct struc = new TStruct("enqueue_result");
         oprot.WriteStructBegin(struc);
+        TField field = new TField();
 
+        if (this.__isset.success) {
+          if (Success != null) {
+            field.Name = "Success";
+            field.Type = TType.Struct;
+            field.ID = 0;
+            oprot.WriteFieldBegin(field);
+            Success.Write(oprot);
+            oprot.WriteFieldEnd();
+          }
+        }
         oprot.WriteFieldStop();
         oprot.WriteStructEnd();
       }
 
       public override string ToString() {
         StringBuilder sb = new StringBuilder("enqueue_result(");
+        sb.Append("Success: ");
+        sb.Append(Success== null ? "<null>" : Success.ToString());
         sb.Append(")");
         return sb.ToString();
       }
