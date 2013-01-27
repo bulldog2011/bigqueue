@@ -1,7 +1,7 @@
 package com.leansoft.bigqueue.client;
 
 import org.apache.thrift.TException;
-import org.apache.thrift.protocol.TCompactProtocol;
+import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TSocket;
@@ -23,13 +23,14 @@ public class BigQueueClientDemo {
 	public static final String SERVER_IP = "localhost";
 	public static final int SERVER_PORT = 9000;
 	public static final int TIMEOUT = 30000;
+	public static final String TOPIC = "log"; // same as queue name
 	
 	private TTransport transport = null;
 	private BigQueueService.Client client = null;
 	
 	private void initClient() throws TTransportException {
 		transport = new TFramedTransport(new TSocket(SERVER_IP, SERVER_PORT, TIMEOUT));
-		TProtocol protocol = new TCompactProtocol(transport);
+		TProtocol protocol = new TBinaryProtocol(transport);
 		client = new BigQueueService.Client(protocol);
 		transport.open();
 	}
@@ -45,20 +46,20 @@ public class BigQueueClientDemo {
 		try {
 			this.initClient();
 			
-			System.out.println("big queue size before enqueue : " + client.size());
+			System.out.println("big queue size before enqueue : " + client.getSize(TOPIC));
 			
 			QueueRequest req = new QueueRequest();
 			req.setData("hello world".getBytes());
-			client.enqueue(req);
+			client.enqueue(TOPIC, req);
 			
-			System.out.println("big queue size after enqueue : " + client.size());
+			System.out.println("big queue size after enqueue : " + client.getSize(TOPIC));
 			
-			QueueResponse resp = client.peek();
-			System.out.println("big queue size after peek : " + client.size());
+			QueueResponse resp = client.peek(TOPIC);
+			System.out.println("big queue size after peek : " + client.getSize(TOPIC));
 			System.out.println("peeked message : " + new String(resp.getData()));
 			
-			resp = client.dequeue();
-			System.out.println("big queue size after dequeue : " + client.size());
+			resp = client.dequeue(TOPIC);
+			System.out.println("big queue size after dequeue : " + client.getSize(TOPIC));
 			System.out.println("dequeued message : " + new String(resp.getData()));
 		} finally {
 			this.closeClient();

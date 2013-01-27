@@ -1,7 +1,7 @@
 package com.leansoft.bigqueue.server;
 
 import org.apache.thrift.TProcessor;
-import org.apache.thrift.protocol.TCompactProtocol;
+import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.server.TNonblockingServer;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.transport.TFramedTransport;
@@ -20,13 +20,12 @@ public class BigQueueServer {
 	public static final int SERVER_PORT = 9000;
 	// adjust the queue dir and name according to your environment and requirement
 	public static final String QUEUE_DIR = "/bigqueue/server/";
-	public static final String QUEUE_NAME = "thrift-queue";
 	
 	public void start() {
 		try {
 			System.out.println("Big Queue server start ...");
 			
-			BigQueueService.Iface bigQueueSerivce = new BigQueueServiceImpl(QUEUE_DIR, QUEUE_NAME);
+			BigQueueService.Iface bigQueueSerivce = new BigQueueServiceImpl(QUEUE_DIR);
 			TProcessor tprocessor = new BigQueueService.Processor(bigQueueSerivce);
 			
 			TNonblockingServerSocket tnbSocketTransport = new TNonblockingServerSocket(SERVER_PORT);
@@ -34,10 +33,10 @@ public class BigQueueServer {
 			tnbArgs.processor(tprocessor);
 			// Nonblocking server mode needs TFramedTransport
 			tnbArgs.transportFactory(new TFramedTransport.Factory());
-			tnbArgs.protocolFactory(new TCompactProtocol.Factory());
+			tnbArgs.protocolFactory(new TBinaryProtocol.Factory());
 			
 			TServer server = new TNonblockingServer(tnbArgs);
-			System.out.println("Big Queue TNonblockingServer started on port " + SERVER_PORT);
+			System.out.println("Big Queue server started on port " + SERVER_PORT);
 			server.serve();
 		} catch (Exception e) {
 			System.err.println("Server start error!!!");

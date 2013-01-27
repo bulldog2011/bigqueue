@@ -1,7 +1,8 @@
 package com.leansoft.bigqueue.server;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.thrift.TException;
 
@@ -19,62 +20,90 @@ import com.leansoft.bigqueue.thrift.QueueResponse;
  */
 public class BigQueueServiceImpl implements BigQueueService.Iface {
 	
-	private IBigQueue bigQueue;
 	
-	public BigQueueServiceImpl(String queueDir, String queueName) throws IOException {
-		bigQueue = new BigQueueImpl(queueDir, queueName);
+	// topic to queue map
+	private Map<String, IBigQueue> queueMap;
+	private Object lock = new Object();
+	
+	private String queueDir;
+	
+	public BigQueueServiceImpl(String queueDir) throws IOException {
+		this.queueDir = queueDir;
+		this.queueMap = new HashMap<String, IBigQueue>();
 	}
 
 	@Override
-	public void enqueue(QueueRequest req) throws TException {
-		if (req.data != null && req.data.limit() > 0) {
+	public void enqueue(String topic, QueueRequest req) throws TException {
+		if (topic == null) return; // ignore
+		IBigQueue bigQueue = queueMap.get(topic);
+		if (bigQueue == null) {
+			synchronized(lock) {
+				bigQueue = queueMap.get(topic);
+				if (bigQueue == null) {
+					try {
+						bigQueue = new BigQueueImpl(queueDir, topic);
+						queueMap.put(topic, bigQueue);
+					} catch (IOException e) {
+						throw new TException(e);
+					}
+				}
+			}
+		}
+		
+		if (req.getData() != null && req.getData().length > 0) {
 			try {
-				bigQueue.enqueue(req.data.array());
+				bigQueue.enqueue(req.getData());
 			} catch (IOException e) {
-				e.printStackTrace();
+				throw new TException(e);
 			}
 		}
 		
 	}
 
 	@Override
-	public QueueResponse dequeue() throws TException {
+	public QueueResponse dequeue(String topic) throws TException {
+		IBigQueue bigQueue = queueMap.get(topic);
 		byte[] data = null;
-		try {
-			data = bigQueue.dequeue();
-		} catch (IOException e) {
-			e.printStackTrace();
+		if (bigQueue != null) {
+			try {
+				data = bigQueue.dequeue();
+			} catch (IOException e) {
+				throw new TException(e);
+			}
 		}
 		QueueResponse resp = new QueueResponse();
-		if (data != null && data.length > 0) {
-			resp.data = ByteBuffer.wrap(data);
-		}
+		resp.setData(data);
 		return resp;
 	}
 
 	@Override
-	public QueueResponse peek() throws TException {
+	public QueueResponse peek(String topic) throws TException {
+		IBigQueue bigQueue = queueMap.get(topic);
 		byte[] data = null;
-		try {
-			data = bigQueue.peek();
-		} catch (IOException e) {
-			e.printStackTrace();
+		if (bigQueue != null) {
+			try {
+				data = bigQueue.peek();
+			} catch (IOException e) {
+				throw new TException(e);
+			}
 		}
 		QueueResponse resp = new QueueResponse();
-		if (data != null && data.length > 0) {
-			resp.data = ByteBuffer.wrap(data);
-		}
+		resp.setData(data);
 		return resp;
 	}
 
 	@Override
-	public long size() throws TException {
-		return this.bigQueue.size();
+	public long getSize(String topic) throws TException {
+		IBigQueue bigQueue = queueMap.get(topic);
+		if (bigQueue != null) return bigQueue.size();
+		return 0L;
 	}
 
 	@Override
-	public boolean isEmpty() throws TException {
-		return this.bigQueue.isEmpty();
+	public boolean isEmpty(String topic) throws TException {
+		IBigQueue bigQueue = queueMap.get(topic);
+		if (bigQueue != null) return bigQueue.isEmpty();
+		return true;
 	}
 
 }

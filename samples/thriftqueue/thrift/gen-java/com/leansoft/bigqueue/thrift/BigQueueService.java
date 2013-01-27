@@ -24,29 +24,29 @@ public class BigQueueService {
 
   public interface Iface {
 
-    public void enqueue(QueueRequest req) throws org.apache.thrift.TException;
+    public void enqueue(String topic, QueueRequest req) throws org.apache.thrift.TException;
 
-    public QueueResponse dequeue() throws org.apache.thrift.TException;
+    public QueueResponse dequeue(String topic) throws org.apache.thrift.TException;
 
-    public QueueResponse peek() throws org.apache.thrift.TException;
+    public QueueResponse peek(String topic) throws org.apache.thrift.TException;
 
-    public long size() throws org.apache.thrift.TException;
+    public long getSize(String topic) throws org.apache.thrift.TException;
 
-    public boolean isEmpty() throws org.apache.thrift.TException;
+    public boolean isEmpty(String topic) throws org.apache.thrift.TException;
 
   }
 
   public interface AsyncIface {
 
-    public void enqueue(QueueRequest req, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.enqueue_call> resultHandler) throws org.apache.thrift.TException;
+    public void enqueue(String topic, QueueRequest req, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.enqueue_call> resultHandler) throws org.apache.thrift.TException;
 
-    public void dequeue(org.apache.thrift.async.AsyncMethodCallback<AsyncClient.dequeue_call> resultHandler) throws org.apache.thrift.TException;
+    public void dequeue(String topic, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.dequeue_call> resultHandler) throws org.apache.thrift.TException;
 
-    public void peek(org.apache.thrift.async.AsyncMethodCallback<AsyncClient.peek_call> resultHandler) throws org.apache.thrift.TException;
+    public void peek(String topic, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.peek_call> resultHandler) throws org.apache.thrift.TException;
 
-    public void size(org.apache.thrift.async.AsyncMethodCallback<AsyncClient.size_call> resultHandler) throws org.apache.thrift.TException;
+    public void getSize(String topic, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.getSize_call> resultHandler) throws org.apache.thrift.TException;
 
-    public void isEmpty(org.apache.thrift.async.AsyncMethodCallback<AsyncClient.isEmpty_call> resultHandler) throws org.apache.thrift.TException;
+    public void isEmpty(String topic, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.isEmpty_call> resultHandler) throws org.apache.thrift.TException;
 
   }
 
@@ -87,16 +87,17 @@ public class BigQueueService {
       return this.oprot_;
     }
 
-    public void enqueue(QueueRequest req) throws org.apache.thrift.TException
+    public void enqueue(String topic, QueueRequest req) throws org.apache.thrift.TException
     {
-      send_enqueue(req);
+      send_enqueue(topic, req);
       recv_enqueue();
     }
 
-    public void send_enqueue(QueueRequest req) throws org.apache.thrift.TException
+    public void send_enqueue(String topic, QueueRequest req) throws org.apache.thrift.TException
     {
       oprot_.writeMessageBegin(new org.apache.thrift.protocol.TMessage("enqueue", org.apache.thrift.protocol.TMessageType.CALL, ++seqid_));
       enqueue_args args = new enqueue_args();
+      args.setTopic(topic);
       args.setReq(req);
       args.write(oprot_);
       oprot_.writeMessageEnd();
@@ -120,16 +121,17 @@ public class BigQueueService {
       return;
     }
 
-    public QueueResponse dequeue() throws org.apache.thrift.TException
+    public QueueResponse dequeue(String topic) throws org.apache.thrift.TException
     {
-      send_dequeue();
+      send_dequeue(topic);
       return recv_dequeue();
     }
 
-    public void send_dequeue() throws org.apache.thrift.TException
+    public void send_dequeue(String topic) throws org.apache.thrift.TException
     {
       oprot_.writeMessageBegin(new org.apache.thrift.protocol.TMessage("dequeue", org.apache.thrift.protocol.TMessageType.CALL, ++seqid_));
       dequeue_args args = new dequeue_args();
+      args.setTopic(topic);
       args.write(oprot_);
       oprot_.writeMessageEnd();
       oprot_.getTransport().flush();
@@ -155,16 +157,17 @@ public class BigQueueService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "dequeue failed: unknown result");
     }
 
-    public QueueResponse peek() throws org.apache.thrift.TException
+    public QueueResponse peek(String topic) throws org.apache.thrift.TException
     {
-      send_peek();
+      send_peek(topic);
       return recv_peek();
     }
 
-    public void send_peek() throws org.apache.thrift.TException
+    public void send_peek(String topic) throws org.apache.thrift.TException
     {
       oprot_.writeMessageBegin(new org.apache.thrift.protocol.TMessage("peek", org.apache.thrift.protocol.TMessageType.CALL, ++seqid_));
       peek_args args = new peek_args();
+      args.setTopic(topic);
       args.write(oprot_);
       oprot_.writeMessageEnd();
       oprot_.getTransport().flush();
@@ -190,22 +193,23 @@ public class BigQueueService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "peek failed: unknown result");
     }
 
-    public long size() throws org.apache.thrift.TException
+    public long getSize(String topic) throws org.apache.thrift.TException
     {
-      send_size();
-      return recv_size();
+      send_getSize(topic);
+      return recv_getSize();
     }
 
-    public void send_size() throws org.apache.thrift.TException
+    public void send_getSize(String topic) throws org.apache.thrift.TException
     {
-      oprot_.writeMessageBegin(new org.apache.thrift.protocol.TMessage("size", org.apache.thrift.protocol.TMessageType.CALL, ++seqid_));
-      size_args args = new size_args();
+      oprot_.writeMessageBegin(new org.apache.thrift.protocol.TMessage("getSize", org.apache.thrift.protocol.TMessageType.CALL, ++seqid_));
+      getSize_args args = new getSize_args();
+      args.setTopic(topic);
       args.write(oprot_);
       oprot_.writeMessageEnd();
       oprot_.getTransport().flush();
     }
 
-    public long recv_size() throws org.apache.thrift.TException
+    public long recv_getSize() throws org.apache.thrift.TException
     {
       org.apache.thrift.protocol.TMessage msg = iprot_.readMessageBegin();
       if (msg.type == org.apache.thrift.protocol.TMessageType.EXCEPTION) {
@@ -214,27 +218,28 @@ public class BigQueueService {
         throw x;
       }
       if (msg.seqid != seqid_) {
-        throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.BAD_SEQUENCE_ID, "size failed: out of sequence response");
+        throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.BAD_SEQUENCE_ID, "getSize failed: out of sequence response");
       }
-      size_result result = new size_result();
+      getSize_result result = new getSize_result();
       result.read(iprot_);
       iprot_.readMessageEnd();
       if (result.isSetSuccess()) {
         return result.success;
       }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "size failed: unknown result");
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getSize failed: unknown result");
     }
 
-    public boolean isEmpty() throws org.apache.thrift.TException
+    public boolean isEmpty(String topic) throws org.apache.thrift.TException
     {
-      send_isEmpty();
+      send_isEmpty(topic);
       return recv_isEmpty();
     }
 
-    public void send_isEmpty() throws org.apache.thrift.TException
+    public void send_isEmpty(String topic) throws org.apache.thrift.TException
     {
       oprot_.writeMessageBegin(new org.apache.thrift.protocol.TMessage("isEmpty", org.apache.thrift.protocol.TMessageType.CALL, ++seqid_));
       isEmpty_args args = new isEmpty_args();
+      args.setTopic(topic);
       args.write(oprot_);
       oprot_.writeMessageEnd();
       oprot_.getTransport().flush();
@@ -278,23 +283,26 @@ public class BigQueueService {
       super(protocolFactory, clientManager, transport);
     }
 
-    public void enqueue(QueueRequest req, org.apache.thrift.async.AsyncMethodCallback<enqueue_call> resultHandler) throws org.apache.thrift.TException {
+    public void enqueue(String topic, QueueRequest req, org.apache.thrift.async.AsyncMethodCallback<enqueue_call> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      enqueue_call method_call = new enqueue_call(req, resultHandler, this, protocolFactory, transport);
+      enqueue_call method_call = new enqueue_call(topic, req, resultHandler, this, protocolFactory, transport);
       this.currentMethod = method_call;
       manager.call(method_call);
     }
 
     public static class enqueue_call extends org.apache.thrift.async.TAsyncMethodCall {
+      private String topic;
       private QueueRequest req;
-      public enqueue_call(QueueRequest req, org.apache.thrift.async.AsyncMethodCallback<enqueue_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      public enqueue_call(String topic, QueueRequest req, org.apache.thrift.async.AsyncMethodCallback<enqueue_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
+        this.topic = topic;
         this.req = req;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("enqueue", org.apache.thrift.protocol.TMessageType.CALL, 0));
         enqueue_args args = new enqueue_args();
+        args.setTopic(topic);
         args.setReq(req);
         args.write(prot);
         prot.writeMessageEnd();
@@ -310,21 +318,24 @@ public class BigQueueService {
       }
     }
 
-    public void dequeue(org.apache.thrift.async.AsyncMethodCallback<dequeue_call> resultHandler) throws org.apache.thrift.TException {
+    public void dequeue(String topic, org.apache.thrift.async.AsyncMethodCallback<dequeue_call> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      dequeue_call method_call = new dequeue_call(resultHandler, this, protocolFactory, transport);
+      dequeue_call method_call = new dequeue_call(topic, resultHandler, this, protocolFactory, transport);
       this.currentMethod = method_call;
       manager.call(method_call);
     }
 
     public static class dequeue_call extends org.apache.thrift.async.TAsyncMethodCall {
-      public dequeue_call(org.apache.thrift.async.AsyncMethodCallback<dequeue_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private String topic;
+      public dequeue_call(String topic, org.apache.thrift.async.AsyncMethodCallback<dequeue_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
+        this.topic = topic;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("dequeue", org.apache.thrift.protocol.TMessageType.CALL, 0));
         dequeue_args args = new dequeue_args();
+        args.setTopic(topic);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -339,21 +350,24 @@ public class BigQueueService {
       }
     }
 
-    public void peek(org.apache.thrift.async.AsyncMethodCallback<peek_call> resultHandler) throws org.apache.thrift.TException {
+    public void peek(String topic, org.apache.thrift.async.AsyncMethodCallback<peek_call> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      peek_call method_call = new peek_call(resultHandler, this, protocolFactory, transport);
+      peek_call method_call = new peek_call(topic, resultHandler, this, protocolFactory, transport);
       this.currentMethod = method_call;
       manager.call(method_call);
     }
 
     public static class peek_call extends org.apache.thrift.async.TAsyncMethodCall {
-      public peek_call(org.apache.thrift.async.AsyncMethodCallback<peek_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private String topic;
+      public peek_call(String topic, org.apache.thrift.async.AsyncMethodCallback<peek_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
+        this.topic = topic;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("peek", org.apache.thrift.protocol.TMessageType.CALL, 0));
         peek_args args = new peek_args();
+        args.setTopic(topic);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -368,21 +382,24 @@ public class BigQueueService {
       }
     }
 
-    public void size(org.apache.thrift.async.AsyncMethodCallback<size_call> resultHandler) throws org.apache.thrift.TException {
+    public void getSize(String topic, org.apache.thrift.async.AsyncMethodCallback<getSize_call> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      size_call method_call = new size_call(resultHandler, this, protocolFactory, transport);
+      getSize_call method_call = new getSize_call(topic, resultHandler, this, protocolFactory, transport);
       this.currentMethod = method_call;
       manager.call(method_call);
     }
 
-    public static class size_call extends org.apache.thrift.async.TAsyncMethodCall {
-      public size_call(org.apache.thrift.async.AsyncMethodCallback<size_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+    public static class getSize_call extends org.apache.thrift.async.TAsyncMethodCall {
+      private String topic;
+      public getSize_call(String topic, org.apache.thrift.async.AsyncMethodCallback<getSize_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
+        this.topic = topic;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("size", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        size_args args = new size_args();
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("getSize", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        getSize_args args = new getSize_args();
+        args.setTopic(topic);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -393,25 +410,28 @@ public class BigQueueService {
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_size();
+        return (new Client(prot)).recv_getSize();
       }
     }
 
-    public void isEmpty(org.apache.thrift.async.AsyncMethodCallback<isEmpty_call> resultHandler) throws org.apache.thrift.TException {
+    public void isEmpty(String topic, org.apache.thrift.async.AsyncMethodCallback<isEmpty_call> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      isEmpty_call method_call = new isEmpty_call(resultHandler, this, protocolFactory, transport);
+      isEmpty_call method_call = new isEmpty_call(topic, resultHandler, this, protocolFactory, transport);
       this.currentMethod = method_call;
       manager.call(method_call);
     }
 
     public static class isEmpty_call extends org.apache.thrift.async.TAsyncMethodCall {
-      public isEmpty_call(org.apache.thrift.async.AsyncMethodCallback<isEmpty_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private String topic;
+      public isEmpty_call(String topic, org.apache.thrift.async.AsyncMethodCallback<isEmpty_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
+        this.topic = topic;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("isEmpty", org.apache.thrift.protocol.TMessageType.CALL, 0));
         isEmpty_args args = new isEmpty_args();
+        args.setTopic(topic);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -436,7 +456,7 @@ public class BigQueueService {
       processMap_.put("enqueue", new enqueue());
       processMap_.put("dequeue", new dequeue());
       processMap_.put("peek", new peek());
-      processMap_.put("size", new size());
+      processMap_.put("getSize", new getSize());
       processMap_.put("isEmpty", new isEmpty());
     }
 
@@ -482,7 +502,7 @@ public class BigQueueService {
         }
         iprot.readMessageEnd();
         enqueue_result result = new enqueue_result();
-        iface_.enqueue(args.req);
+        iface_.enqueue(args.topic, args.req);
         oprot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("enqueue", org.apache.thrift.protocol.TMessageType.REPLY, seqid));
         result.write(oprot);
         oprot.writeMessageEnd();
@@ -508,7 +528,7 @@ public class BigQueueService {
         }
         iprot.readMessageEnd();
         dequeue_result result = new dequeue_result();
-        result.success = iface_.dequeue();
+        result.success = iface_.dequeue(args.topic);
         oprot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("dequeue", org.apache.thrift.protocol.TMessageType.REPLY, seqid));
         result.write(oprot);
         oprot.writeMessageEnd();
@@ -534,7 +554,7 @@ public class BigQueueService {
         }
         iprot.readMessageEnd();
         peek_result result = new peek_result();
-        result.success = iface_.peek();
+        result.success = iface_.peek(args.topic);
         oprot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("peek", org.apache.thrift.protocol.TMessageType.REPLY, seqid));
         result.write(oprot);
         oprot.writeMessageEnd();
@@ -543,26 +563,26 @@ public class BigQueueService {
 
     }
 
-    private class size implements ProcessFunction {
+    private class getSize implements ProcessFunction {
       public void process(int seqid, org.apache.thrift.protocol.TProtocol iprot, org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException
       {
-        size_args args = new size_args();
+        getSize_args args = new getSize_args();
         try {
           args.read(iprot);
         } catch (org.apache.thrift.protocol.TProtocolException e) {
           iprot.readMessageEnd();
           org.apache.thrift.TApplicationException x = new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.PROTOCOL_ERROR, e.getMessage());
-          oprot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("size", org.apache.thrift.protocol.TMessageType.EXCEPTION, seqid));
+          oprot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("getSize", org.apache.thrift.protocol.TMessageType.EXCEPTION, seqid));
           x.write(oprot);
           oprot.writeMessageEnd();
           oprot.getTransport().flush();
           return;
         }
         iprot.readMessageEnd();
-        size_result result = new size_result();
-        result.success = iface_.size();
+        getSize_result result = new getSize_result();
+        result.success = iface_.getSize(args.topic);
         result.setSuccessIsSet(true);
-        oprot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("size", org.apache.thrift.protocol.TMessageType.REPLY, seqid));
+        oprot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("getSize", org.apache.thrift.protocol.TMessageType.REPLY, seqid));
         result.write(oprot);
         oprot.writeMessageEnd();
         oprot.getTransport().flush();
@@ -587,7 +607,7 @@ public class BigQueueService {
         }
         iprot.readMessageEnd();
         isEmpty_result result = new isEmpty_result();
-        result.success = iface_.isEmpty();
+        result.success = iface_.isEmpty(args.topic);
         result.setSuccessIsSet(true);
         oprot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("isEmpty", org.apache.thrift.protocol.TMessageType.REPLY, seqid));
         result.write(oprot);
@@ -602,13 +622,16 @@ public class BigQueueService {
   public static class enqueue_args implements org.apache.thrift.TBase<enqueue_args, enqueue_args._Fields>, java.io.Serializable, Cloneable   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("enqueue_args");
 
-    private static final org.apache.thrift.protocol.TField REQ_FIELD_DESC = new org.apache.thrift.protocol.TField("req", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField TOPIC_FIELD_DESC = new org.apache.thrift.protocol.TField("topic", org.apache.thrift.protocol.TType.STRING, (short)1);
+    private static final org.apache.thrift.protocol.TField REQ_FIELD_DESC = new org.apache.thrift.protocol.TField("req", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
+    public String topic;
     public QueueRequest req;
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      REQ((short)1, "req");
+      TOPIC((short)1, "topic"),
+      REQ((short)2, "req");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -623,7 +646,9 @@ public class BigQueueService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // REQ
+          case 1: // TOPIC
+            return TOPIC;
+          case 2: // REQ
             return REQ;
           default:
             return null;
@@ -669,6 +694,8 @@ public class BigQueueService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.TOPIC, new org.apache.thrift.meta_data.FieldMetaData("topic", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       tmpMap.put(_Fields.REQ, new org.apache.thrift.meta_data.FieldMetaData("req", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, QueueRequest.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
@@ -679,9 +706,11 @@ public class BigQueueService {
     }
 
     public enqueue_args(
+      String topic,
       QueueRequest req)
     {
       this();
+      this.topic = topic;
       this.req = req;
     }
 
@@ -689,6 +718,9 @@ public class BigQueueService {
      * Performs a deep copy on <i>other</i>.
      */
     public enqueue_args(enqueue_args other) {
+      if (other.isSetTopic()) {
+        this.topic = other.topic;
+      }
       if (other.isSetReq()) {
         this.req = new QueueRequest(other.req);
       }
@@ -700,7 +732,32 @@ public class BigQueueService {
 
     @Override
     public void clear() {
+      this.topic = null;
       this.req = null;
+    }
+
+    public String getTopic() {
+      return this.topic;
+    }
+
+    public enqueue_args setTopic(String topic) {
+      this.topic = topic;
+      return this;
+    }
+
+    public void unsetTopic() {
+      this.topic = null;
+    }
+
+    /** Returns true if field topic is set (has been assigned a value) and false otherwise */
+    public boolean isSetTopic() {
+      return this.topic != null;
+    }
+
+    public void setTopicIsSet(boolean value) {
+      if (!value) {
+        this.topic = null;
+      }
     }
 
     public QueueRequest getReq() {
@@ -729,6 +786,14 @@ public class BigQueueService {
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
+      case TOPIC:
+        if (value == null) {
+          unsetTopic();
+        } else {
+          setTopic((String)value);
+        }
+        break;
+
       case REQ:
         if (value == null) {
           unsetReq();
@@ -742,6 +807,9 @@ public class BigQueueService {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
+      case TOPIC:
+        return getTopic();
+
       case REQ:
         return getReq();
 
@@ -756,6 +824,8 @@ public class BigQueueService {
       }
 
       switch (field) {
+      case TOPIC:
+        return isSetTopic();
       case REQ:
         return isSetReq();
       }
@@ -774,6 +844,15 @@ public class BigQueueService {
     public boolean equals(enqueue_args that) {
       if (that == null)
         return false;
+
+      boolean this_present_topic = true && this.isSetTopic();
+      boolean that_present_topic = true && that.isSetTopic();
+      if (this_present_topic || that_present_topic) {
+        if (!(this_present_topic && that_present_topic))
+          return false;
+        if (!this.topic.equals(that.topic))
+          return false;
+      }
 
       boolean this_present_req = true && this.isSetReq();
       boolean that_present_req = true && that.isSetReq();
@@ -800,6 +879,16 @@ public class BigQueueService {
       int lastComparison = 0;
       enqueue_args typedOther = (enqueue_args)other;
 
+      lastComparison = Boolean.valueOf(isSetTopic()).compareTo(typedOther.isSetTopic());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetTopic()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.topic, typedOther.topic);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       lastComparison = Boolean.valueOf(isSetReq()).compareTo(typedOther.isSetReq());
       if (lastComparison != 0) {
         return lastComparison;
@@ -827,7 +916,14 @@ public class BigQueueService {
           break;
         }
         switch (field.id) {
-          case 1: // REQ
+          case 1: // TOPIC
+            if (field.type == org.apache.thrift.protocol.TType.STRING) {
+              this.topic = iprot.readString();
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
+            }
+            break;
+          case 2: // REQ
             if (field.type == org.apache.thrift.protocol.TType.STRUCT) {
               this.req = new QueueRequest();
               this.req.read(iprot);
@@ -850,6 +946,11 @@ public class BigQueueService {
       validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
+      if (this.topic != null) {
+        oprot.writeFieldBegin(TOPIC_FIELD_DESC);
+        oprot.writeString(this.topic);
+        oprot.writeFieldEnd();
+      }
       if (this.req != null) {
         oprot.writeFieldBegin(REQ_FIELD_DESC);
         this.req.write(oprot);
@@ -864,6 +965,14 @@ public class BigQueueService {
       StringBuilder sb = new StringBuilder("enqueue_args(");
       boolean first = true;
 
+      sb.append("topic:");
+      if (this.topic == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.topic);
+      }
+      first = false;
+      if (!first) sb.append(", ");
       sb.append("req:");
       if (this.req == null) {
         sb.append("null");
@@ -1101,11 +1210,13 @@ public class BigQueueService {
   public static class dequeue_args implements org.apache.thrift.TBase<dequeue_args, dequeue_args._Fields>, java.io.Serializable, Cloneable   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("dequeue_args");
 
+    private static final org.apache.thrift.protocol.TField TOPIC_FIELD_DESC = new org.apache.thrift.protocol.TField("topic", org.apache.thrift.protocol.TType.STRING, (short)1);
 
+    public String topic;
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-;
+      TOPIC((short)1, "topic");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -1120,6 +1231,8 @@ public class BigQueueService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
+          case 1: // TOPIC
+            return TOPIC;
           default:
             return null;
         }
@@ -1158,9 +1271,14 @@ public class BigQueueService {
         return _fieldName;
       }
     }
+
+    // isset id assignments
+
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.TOPIC, new org.apache.thrift.meta_data.FieldMetaData("topic", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(dequeue_args.class, metaDataMap);
     }
@@ -1168,10 +1286,20 @@ public class BigQueueService {
     public dequeue_args() {
     }
 
+    public dequeue_args(
+      String topic)
+    {
+      this();
+      this.topic = topic;
+    }
+
     /**
      * Performs a deep copy on <i>other</i>.
      */
     public dequeue_args(dequeue_args other) {
+      if (other.isSetTopic()) {
+        this.topic = other.topic;
+      }
     }
 
     public dequeue_args deepCopy() {
@@ -1180,15 +1308,51 @@ public class BigQueueService {
 
     @Override
     public void clear() {
+      this.topic = null;
+    }
+
+    public String getTopic() {
+      return this.topic;
+    }
+
+    public dequeue_args setTopic(String topic) {
+      this.topic = topic;
+      return this;
+    }
+
+    public void unsetTopic() {
+      this.topic = null;
+    }
+
+    /** Returns true if field topic is set (has been assigned a value) and false otherwise */
+    public boolean isSetTopic() {
+      return this.topic != null;
+    }
+
+    public void setTopicIsSet(boolean value) {
+      if (!value) {
+        this.topic = null;
+      }
     }
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
+      case TOPIC:
+        if (value == null) {
+          unsetTopic();
+        } else {
+          setTopic((String)value);
+        }
+        break;
+
       }
     }
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
+      case TOPIC:
+        return getTopic();
+
       }
       throw new IllegalStateException();
     }
@@ -1200,6 +1364,8 @@ public class BigQueueService {
       }
 
       switch (field) {
+      case TOPIC:
+        return isSetTopic();
       }
       throw new IllegalStateException();
     }
@@ -1217,6 +1383,15 @@ public class BigQueueService {
       if (that == null)
         return false;
 
+      boolean this_present_topic = true && this.isSetTopic();
+      boolean that_present_topic = true && that.isSetTopic();
+      if (this_present_topic || that_present_topic) {
+        if (!(this_present_topic && that_present_topic))
+          return false;
+        if (!this.topic.equals(that.topic))
+          return false;
+      }
+
       return true;
     }
 
@@ -1233,6 +1408,16 @@ public class BigQueueService {
       int lastComparison = 0;
       dequeue_args typedOther = (dequeue_args)other;
 
+      lastComparison = Boolean.valueOf(isSetTopic()).compareTo(typedOther.isSetTopic());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetTopic()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.topic, typedOther.topic);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       return 0;
     }
 
@@ -1250,6 +1435,13 @@ public class BigQueueService {
           break;
         }
         switch (field.id) {
+          case 1: // TOPIC
+            if (field.type == org.apache.thrift.protocol.TType.STRING) {
+              this.topic = iprot.readString();
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
         }
@@ -1265,6 +1457,11 @@ public class BigQueueService {
       validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
+      if (this.topic != null) {
+        oprot.writeFieldBegin(TOPIC_FIELD_DESC);
+        oprot.writeString(this.topic);
+        oprot.writeFieldEnd();
+      }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -1274,6 +1471,13 @@ public class BigQueueService {
       StringBuilder sb = new StringBuilder("dequeue_args(");
       boolean first = true;
 
+      sb.append("topic:");
+      if (this.topic == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.topic);
+      }
+      first = false;
       sb.append(")");
       return sb.toString();
     }
@@ -1600,11 +1804,13 @@ public class BigQueueService {
   public static class peek_args implements org.apache.thrift.TBase<peek_args, peek_args._Fields>, java.io.Serializable, Cloneable   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("peek_args");
 
+    private static final org.apache.thrift.protocol.TField TOPIC_FIELD_DESC = new org.apache.thrift.protocol.TField("topic", org.apache.thrift.protocol.TType.STRING, (short)1);
 
+    public String topic;
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-;
+      TOPIC((short)1, "topic");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -1619,6 +1825,8 @@ public class BigQueueService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
+          case 1: // TOPIC
+            return TOPIC;
           default:
             return null;
         }
@@ -1657,9 +1865,14 @@ public class BigQueueService {
         return _fieldName;
       }
     }
+
+    // isset id assignments
+
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.TOPIC, new org.apache.thrift.meta_data.FieldMetaData("topic", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(peek_args.class, metaDataMap);
     }
@@ -1667,10 +1880,20 @@ public class BigQueueService {
     public peek_args() {
     }
 
+    public peek_args(
+      String topic)
+    {
+      this();
+      this.topic = topic;
+    }
+
     /**
      * Performs a deep copy on <i>other</i>.
      */
     public peek_args(peek_args other) {
+      if (other.isSetTopic()) {
+        this.topic = other.topic;
+      }
     }
 
     public peek_args deepCopy() {
@@ -1679,15 +1902,51 @@ public class BigQueueService {
 
     @Override
     public void clear() {
+      this.topic = null;
+    }
+
+    public String getTopic() {
+      return this.topic;
+    }
+
+    public peek_args setTopic(String topic) {
+      this.topic = topic;
+      return this;
+    }
+
+    public void unsetTopic() {
+      this.topic = null;
+    }
+
+    /** Returns true if field topic is set (has been assigned a value) and false otherwise */
+    public boolean isSetTopic() {
+      return this.topic != null;
+    }
+
+    public void setTopicIsSet(boolean value) {
+      if (!value) {
+        this.topic = null;
+      }
     }
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
+      case TOPIC:
+        if (value == null) {
+          unsetTopic();
+        } else {
+          setTopic((String)value);
+        }
+        break;
+
       }
     }
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
+      case TOPIC:
+        return getTopic();
+
       }
       throw new IllegalStateException();
     }
@@ -1699,6 +1958,8 @@ public class BigQueueService {
       }
 
       switch (field) {
+      case TOPIC:
+        return isSetTopic();
       }
       throw new IllegalStateException();
     }
@@ -1716,6 +1977,15 @@ public class BigQueueService {
       if (that == null)
         return false;
 
+      boolean this_present_topic = true && this.isSetTopic();
+      boolean that_present_topic = true && that.isSetTopic();
+      if (this_present_topic || that_present_topic) {
+        if (!(this_present_topic && that_present_topic))
+          return false;
+        if (!this.topic.equals(that.topic))
+          return false;
+      }
+
       return true;
     }
 
@@ -1732,6 +2002,16 @@ public class BigQueueService {
       int lastComparison = 0;
       peek_args typedOther = (peek_args)other;
 
+      lastComparison = Boolean.valueOf(isSetTopic()).compareTo(typedOther.isSetTopic());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetTopic()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.topic, typedOther.topic);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       return 0;
     }
 
@@ -1749,6 +2029,13 @@ public class BigQueueService {
           break;
         }
         switch (field.id) {
+          case 1: // TOPIC
+            if (field.type == org.apache.thrift.protocol.TType.STRING) {
+              this.topic = iprot.readString();
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
         }
@@ -1764,6 +2051,11 @@ public class BigQueueService {
       validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
+      if (this.topic != null) {
+        oprot.writeFieldBegin(TOPIC_FIELD_DESC);
+        oprot.writeString(this.topic);
+        oprot.writeFieldEnd();
+      }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -1773,6 +2065,13 @@ public class BigQueueService {
       StringBuilder sb = new StringBuilder("peek_args(");
       boolean first = true;
 
+      sb.append("topic:");
+      if (this.topic == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.topic);
+      }
+      first = false;
       sb.append(")");
       return sb.toString();
     }
@@ -2096,14 +2395,16 @@ public class BigQueueService {
 
   }
 
-  public static class size_args implements org.apache.thrift.TBase<size_args, size_args._Fields>, java.io.Serializable, Cloneable   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("size_args");
+  public static class getSize_args implements org.apache.thrift.TBase<getSize_args, getSize_args._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getSize_args");
 
+    private static final org.apache.thrift.protocol.TField TOPIC_FIELD_DESC = new org.apache.thrift.protocol.TField("topic", org.apache.thrift.protocol.TType.STRING, (short)1);
 
+    public String topic;
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-;
+      TOPIC((short)1, "topic");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -2118,6 +2419,8 @@ public class BigQueueService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
+          case 1: // TOPIC
+            return TOPIC;
           default:
             return null;
         }
@@ -2156,37 +2459,88 @@ public class BigQueueService {
         return _fieldName;
       }
     }
+
+    // isset id assignments
+
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.TOPIC, new org.apache.thrift.meta_data.FieldMetaData("topic", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(size_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getSize_args.class, metaDataMap);
     }
 
-    public size_args() {
+    public getSize_args() {
+    }
+
+    public getSize_args(
+      String topic)
+    {
+      this();
+      this.topic = topic;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public size_args(size_args other) {
+    public getSize_args(getSize_args other) {
+      if (other.isSetTopic()) {
+        this.topic = other.topic;
+      }
     }
 
-    public size_args deepCopy() {
-      return new size_args(this);
+    public getSize_args deepCopy() {
+      return new getSize_args(this);
     }
 
     @Override
     public void clear() {
+      this.topic = null;
+    }
+
+    public String getTopic() {
+      return this.topic;
+    }
+
+    public getSize_args setTopic(String topic) {
+      this.topic = topic;
+      return this;
+    }
+
+    public void unsetTopic() {
+      this.topic = null;
+    }
+
+    /** Returns true if field topic is set (has been assigned a value) and false otherwise */
+    public boolean isSetTopic() {
+      return this.topic != null;
+    }
+
+    public void setTopicIsSet(boolean value) {
+      if (!value) {
+        this.topic = null;
+      }
     }
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
+      case TOPIC:
+        if (value == null) {
+          unsetTopic();
+        } else {
+          setTopic((String)value);
+        }
+        break;
+
       }
     }
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
+      case TOPIC:
+        return getTopic();
+
       }
       throw new IllegalStateException();
     }
@@ -2198,6 +2552,8 @@ public class BigQueueService {
       }
 
       switch (field) {
+      case TOPIC:
+        return isSetTopic();
       }
       throw new IllegalStateException();
     }
@@ -2206,14 +2562,23 @@ public class BigQueueService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof size_args)
-        return this.equals((size_args)that);
+      if (that instanceof getSize_args)
+        return this.equals((getSize_args)that);
       return false;
     }
 
-    public boolean equals(size_args that) {
+    public boolean equals(getSize_args that) {
       if (that == null)
         return false;
+
+      boolean this_present_topic = true && this.isSetTopic();
+      boolean that_present_topic = true && that.isSetTopic();
+      if (this_present_topic || that_present_topic) {
+        if (!(this_present_topic && that_present_topic))
+          return false;
+        if (!this.topic.equals(that.topic))
+          return false;
+      }
 
       return true;
     }
@@ -2223,14 +2588,24 @@ public class BigQueueService {
       return 0;
     }
 
-    public int compareTo(size_args other) {
+    public int compareTo(getSize_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
-      size_args typedOther = (size_args)other;
+      getSize_args typedOther = (getSize_args)other;
 
+      lastComparison = Boolean.valueOf(isSetTopic()).compareTo(typedOther.isSetTopic());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetTopic()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.topic, typedOther.topic);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       return 0;
     }
 
@@ -2248,6 +2623,13 @@ public class BigQueueService {
           break;
         }
         switch (field.id) {
+          case 1: // TOPIC
+            if (field.type == org.apache.thrift.protocol.TType.STRING) {
+              this.topic = iprot.readString();
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
         }
@@ -2263,15 +2645,27 @@ public class BigQueueService {
       validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
+      if (this.topic != null) {
+        oprot.writeFieldBegin(TOPIC_FIELD_DESC);
+        oprot.writeString(this.topic);
+        oprot.writeFieldEnd();
+      }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("size_args(");
+      StringBuilder sb = new StringBuilder("getSize_args(");
       boolean first = true;
 
+      sb.append("topic:");
+      if (this.topic == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.topic);
+      }
+      first = false;
       sb.append(")");
       return sb.toString();
     }
@@ -2298,8 +2692,8 @@ public class BigQueueService {
 
   }
 
-  public static class size_result implements org.apache.thrift.TBase<size_result, size_result._Fields>, java.io.Serializable, Cloneable   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("size_result");
+  public static class getSize_result implements org.apache.thrift.TBase<getSize_result, getSize_result._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getSize_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.I64, (short)0);
 
@@ -2373,13 +2767,13 @@ public class BigQueueService {
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(size_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getSize_result.class, metaDataMap);
     }
 
-    public size_result() {
+    public getSize_result() {
     }
 
-    public size_result(
+    public getSize_result(
       long success)
     {
       this();
@@ -2390,14 +2784,14 @@ public class BigQueueService {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public size_result(size_result other) {
+    public getSize_result(getSize_result other) {
       __isset_bit_vector.clear();
       __isset_bit_vector.or(other.__isset_bit_vector);
       this.success = other.success;
     }
 
-    public size_result deepCopy() {
-      return new size_result(this);
+    public getSize_result deepCopy() {
+      return new getSize_result(this);
     }
 
     @Override
@@ -2410,7 +2804,7 @@ public class BigQueueService {
       return this.success;
     }
 
-    public size_result setSuccess(long success) {
+    public getSize_result setSuccess(long success) {
       this.success = success;
       setSuccessIsSet(true);
       return this;
@@ -2468,12 +2862,12 @@ public class BigQueueService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof size_result)
-        return this.equals((size_result)that);
+      if (that instanceof getSize_result)
+        return this.equals((getSize_result)that);
       return false;
     }
 
-    public boolean equals(size_result that) {
+    public boolean equals(getSize_result that) {
       if (that == null)
         return false;
 
@@ -2494,13 +2888,13 @@ public class BigQueueService {
       return 0;
     }
 
-    public int compareTo(size_result other) {
+    public int compareTo(getSize_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
-      size_result typedOther = (size_result)other;
+      getSize_result typedOther = (getSize_result)other;
 
       lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(typedOther.isSetSuccess());
       if (lastComparison != 0) {
@@ -2562,7 +2956,7 @@ public class BigQueueService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("size_result(");
+      StringBuilder sb = new StringBuilder("getSize_result(");
       boolean first = true;
 
       sb.append("success:");
@@ -2597,11 +2991,13 @@ public class BigQueueService {
   public static class isEmpty_args implements org.apache.thrift.TBase<isEmpty_args, isEmpty_args._Fields>, java.io.Serializable, Cloneable   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("isEmpty_args");
 
+    private static final org.apache.thrift.protocol.TField TOPIC_FIELD_DESC = new org.apache.thrift.protocol.TField("topic", org.apache.thrift.protocol.TType.STRING, (short)1);
 
+    public String topic;
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-;
+      TOPIC((short)1, "topic");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -2616,6 +3012,8 @@ public class BigQueueService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
+          case 1: // TOPIC
+            return TOPIC;
           default:
             return null;
         }
@@ -2654,9 +3052,14 @@ public class BigQueueService {
         return _fieldName;
       }
     }
+
+    // isset id assignments
+
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.TOPIC, new org.apache.thrift.meta_data.FieldMetaData("topic", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(isEmpty_args.class, metaDataMap);
     }
@@ -2664,10 +3067,20 @@ public class BigQueueService {
     public isEmpty_args() {
     }
 
+    public isEmpty_args(
+      String topic)
+    {
+      this();
+      this.topic = topic;
+    }
+
     /**
      * Performs a deep copy on <i>other</i>.
      */
     public isEmpty_args(isEmpty_args other) {
+      if (other.isSetTopic()) {
+        this.topic = other.topic;
+      }
     }
 
     public isEmpty_args deepCopy() {
@@ -2676,15 +3089,51 @@ public class BigQueueService {
 
     @Override
     public void clear() {
+      this.topic = null;
+    }
+
+    public String getTopic() {
+      return this.topic;
+    }
+
+    public isEmpty_args setTopic(String topic) {
+      this.topic = topic;
+      return this;
+    }
+
+    public void unsetTopic() {
+      this.topic = null;
+    }
+
+    /** Returns true if field topic is set (has been assigned a value) and false otherwise */
+    public boolean isSetTopic() {
+      return this.topic != null;
+    }
+
+    public void setTopicIsSet(boolean value) {
+      if (!value) {
+        this.topic = null;
+      }
     }
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
+      case TOPIC:
+        if (value == null) {
+          unsetTopic();
+        } else {
+          setTopic((String)value);
+        }
+        break;
+
       }
     }
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
+      case TOPIC:
+        return getTopic();
+
       }
       throw new IllegalStateException();
     }
@@ -2696,6 +3145,8 @@ public class BigQueueService {
       }
 
       switch (field) {
+      case TOPIC:
+        return isSetTopic();
       }
       throw new IllegalStateException();
     }
@@ -2713,6 +3164,15 @@ public class BigQueueService {
       if (that == null)
         return false;
 
+      boolean this_present_topic = true && this.isSetTopic();
+      boolean that_present_topic = true && that.isSetTopic();
+      if (this_present_topic || that_present_topic) {
+        if (!(this_present_topic && that_present_topic))
+          return false;
+        if (!this.topic.equals(that.topic))
+          return false;
+      }
+
       return true;
     }
 
@@ -2729,6 +3189,16 @@ public class BigQueueService {
       int lastComparison = 0;
       isEmpty_args typedOther = (isEmpty_args)other;
 
+      lastComparison = Boolean.valueOf(isSetTopic()).compareTo(typedOther.isSetTopic());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetTopic()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.topic, typedOther.topic);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       return 0;
     }
 
@@ -2746,6 +3216,13 @@ public class BigQueueService {
           break;
         }
         switch (field.id) {
+          case 1: // TOPIC
+            if (field.type == org.apache.thrift.protocol.TType.STRING) {
+              this.topic = iprot.readString();
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
         }
@@ -2761,6 +3238,11 @@ public class BigQueueService {
       validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
+      if (this.topic != null) {
+        oprot.writeFieldBegin(TOPIC_FIELD_DESC);
+        oprot.writeString(this.topic);
+        oprot.writeFieldEnd();
+      }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -2770,6 +3252,13 @@ public class BigQueueService {
       StringBuilder sb = new StringBuilder("isEmpty_args(");
       boolean first = true;
 
+      sb.append("topic:");
+      if (this.topic == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.topic);
+      }
+      first = false;
       sb.append(")");
       return sb.toString();
     }
