@@ -271,6 +271,9 @@ public class LoadTester {
 				for(int i = 0; i < OUTTER_LOOP; i++) {
 					//System.out.println(new Date() + ", thread " + Thread.currentThread().getId() + " begin to send " + INNER_LOOP + " log events ...");
 					for(int j = 0; j < INNER_LOOP; j++) {
+						// DO NOT generate random logs here, this is accumulatively time consuming 
+						// and will affact the result of performance test, 
+						// instead pre-gen a log when the producer is initialized
 //						byte[] logEvent = RandomLogGenerator.genRandomLogEventBytes(LOG_MESSAGE_SIZE_LIMIT);
 						long begin = System.currentTimeMillis();
 						QueueRequest request = new QueueRequest();
