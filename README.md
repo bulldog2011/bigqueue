@@ -27,7 +27,8 @@ Suppose the average message size is 1KB, then big queue can concurrently produci
 2. [big queue tutorial](http://bulldog2011.github.com/blog/2013/01/24/big-queue-tutorial/)
 3. [big array tutorial](http://bulldog2011.github.com/blog/2013/01/24/big-array-tutorial/)
 4. [how to turn big queue into a thrift based queue service](http://bulldog2011.github.com/blog/2013/01/27/thrift-queue/)
-5. [big data sort and search use case](http://bulldog2011.github.com/blog/2013/01/25/merge-sort-using-big-queue/)
+5. [use case : producing and consuming 4TB log daily on one commodity machine](http://bulldog2011.github.com/blog/2013/01/28/log-collecting/)
+6. [use case : sort and search 100GB data on a single commodity machine](http://bulldog2011.github.com/blog/2013/01/25/merge-sort-using-big-queue/)
 
 
 
