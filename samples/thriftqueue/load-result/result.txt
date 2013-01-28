@@ -1,0 +1,57 @@
+-------------------------------------------------------
+Producer Report:
+-------------------------------------------------------
+Log producer thread number : 50
+Test duration(s) : 279.144
+Total logs sent : 10000000
+Log sending success count : 10000000
+Log sending failure count : 0
+Log sending exception count : 0
+Total byes produced : 20105400000
+Average log size : 2010.54
+Throughput(MB/s) : 68.68857507621235
+Average log sending delay(ms) : 1.2961799
+
+-------------------------------------------------------
+Consumer Report:
+-------------------------------------------------------
+Log consumer thread number : 50
+Test duration(s) : 274.157
+Total logs received : 10000000
+Log receiving success count : 10000000
+Log receiving failure count : 0
+Log receiving exception count : 0
+Total byes received : 20105400000
+Average log size : 2010.54
+Throughput(MB/s) : 69.93804134519353
+Average log receiving delay(ms) : 1.3691828
+
+
+-------------------------------------------------------
+Concurrency Test Report:
+-------------------------------------------------------
+Producer Report:
+-------------------------------------------------------
+Log producer thread number : 50
+Test duration(s) : 395.692
+Total logs sent : 10000000
+Log sending success count : 10000000
+Log sending failure count : 0
+Log sending exception count : 0
+Total byes produced : 21588200000
+Average log size : 2158.82
+Throughput(MB/s) : 52.03064979186187
+Average log sending delay(ms) : 1.8724801
+-------------------------------------------------------
+Consumer Report:
+-------------------------------------------------------
+Log consumer thread number : 50
+Test duration(s) : 395.692
+Total logs received : 10000000
+Log receiving success count : 10000000
+Log receiving failure count : 0
+Log receiving exception count : 0
+Total byes received : 21588200000
+Average log size : 2158.82
+Throughput(MB/s) : 52.03064979186187
+Average log receiving delay(ms) : 1.8693821
