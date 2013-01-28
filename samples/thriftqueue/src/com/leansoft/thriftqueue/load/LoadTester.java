@@ -236,8 +236,8 @@ public class LoadTester {
 	}
 	
     static class TestResult {
-		int failureCount; // send chunk failure
-		int successCount; // send chunk success
+		int failureCount; // send or receive logs failure
+		int successCount; // send or recieve logs success
 		int exceptionCount; // test thread throws exception
 		long totalDelay;
 		long totalBytesSent;
