@@ -20,7 +20,7 @@ import com.leansoft.bigqueue.thrift.QueueResponse;
  */
 public class ThriftQueueClientDemo {
 	
-	public static final String SERVER_IP = "localhost";
+	public static final String SERVER_IP = "192.168.2.100";
 	public static final int SERVER_PORT = 9000;
 	public static final int TIMEOUT = 30000;
 	public static final String TOPIC = "log"; // same as queue name
