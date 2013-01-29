@@ -29,7 +29,7 @@ public class BigArrayLoadTest {
 	// configurable parameters
 	//////////////////////////////////////////////////////////////////
 	private static int loop = 5;
-	private static int totalItemCount = 1000000;
+	private static int totalItemCount = 100000;
 	private static int producerNum = 4;
 	private static int consumerNum = 4;
 	private static int messageLength = 1024;

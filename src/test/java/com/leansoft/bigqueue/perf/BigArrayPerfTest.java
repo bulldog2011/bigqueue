@@ -35,7 +35,7 @@ public class BigArrayPerfTest {
 	// configurable parameters
 	//////////////////////////////////////////////////////////////////
 	private static int loop = 5;
-	private static int totalItemCount = 1000000;
+	private static int totalItemCount = 100000;
 	private static int producerNum = 1;
 	private static int consumerNum = 1;
 	private static int messageLength = 1024;

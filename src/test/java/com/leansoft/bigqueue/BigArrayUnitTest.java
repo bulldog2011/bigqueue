@@ -73,7 +73,7 @@ public class BigArrayUnitTest {
 	    bigArray = new BigArrayImpl(testDir, "remove_before_index_test");
 		assertNotNull(bigArray);
 		
-		int loop = 50000000;
+		int loop = 5000000;
 		for(int i = 0; i < loop; i++) {
 			bigArray.append(("" + i).getBytes());
 		}
@@ -107,7 +107,7 @@ public class BigArrayUnitTest {
 	    bigArray = new BigArrayImpl(testDir, "remove_before_test");
 		assertNotNull(bigArray);
 		
-		int loop = 50000000;
+		int loop = 5000000;
 		for(int i = 0; i < loop; i++) {
 			bigArray.append(("" + i).getBytes());
 		}
@@ -125,7 +125,7 @@ public class BigArrayUnitTest {
 	    bigArray = new BigArrayImpl(testDir, "big_loop_test");
 		assertNotNull(bigArray);
 		
-		int loop = 10000000;
+		int loop = 1000000;
 		long lastAppendTime = System.currentTimeMillis();
 		for(int i = 0; i < loop; i++) {
 			bigArray.append(("" + i).getBytes());
@@ -184,7 +184,7 @@ public class BigArrayUnitTest {
 	    bigArray = new BigArrayImpl(testDir, "loop_timing_test");
 		assertNotNull(bigArray);
 		
-		int loop = 10000000;
+		int loop = 1000000;
 		long begin = System.currentTimeMillis();
 		for(int i = 0; i < loop; i++) {
 			bigArray.append(("" + i).getBytes());

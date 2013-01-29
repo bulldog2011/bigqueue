@@ -53,7 +53,7 @@ public class BigQueueUnitTest {
 		bigQueue = new BigQueueImpl(testDir, "big_loop_test");
 		assertNotNull(bigQueue);
 		
-		int loop = 10000000;
+		int loop = 1000000;
 		for(int i = 0; i < loop; i++) {
 			bigQueue.enqueue(("" + i).getBytes());
 			assertTrue(bigQueue.size() == i + 1L);
@@ -91,7 +91,7 @@ public class BigQueueUnitTest {
 		bigQueue = new BigQueueImpl(testDir, "loop_timing_test");
 		assertNotNull(bigQueue);
 		
-		int loop = 10000000;
+		int loop = 1000000;
 		long begin = System.currentTimeMillis();
 		for(int i = 0; i < loop; i++) {
 			bigQueue.enqueue(("" + i).getBytes());
