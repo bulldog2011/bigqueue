@@ -173,9 +173,13 @@
   
   <distributionManagement>
     <repository>
-      <id>github.repo</id>
-      <url>file:///dev/bulldog-repo/repo</url>
+      <id>github.release.repo</id>
+      <url>file:///dev/bulldog-repo/repo/releases</url>
     </repository>
+    <snapshotRepository>
+      <id>github.snapshot.repo</id>
+      <url>file:///dev/bulldog-repo/repo/snapshots</url>
+    </snapshotRepository>
   </distributionManagement>
   
 </project>
