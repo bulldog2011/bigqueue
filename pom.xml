@@ -11,8 +11,8 @@
   
   <description>Light, fast and persistent queue.</description>
   <scm>
-        <connection>scm:git://git@github.com:bulldog2011/bigqueue.git</connection>
-        <developerConnection>scm:git://git@github.com:bulldog2011/bigqueue.git</developerConnection>
+        <connection>scm:git:git://github.com/bulldog2011/bigqueue.git</connection>
+        <developerConnection>scm:git:git@github.com:bulldog2011/bigqueue.git</developerConnection>
         <url>https://github.com/bulldog2011/bigqueue</url>
   </scm>
     <licenses>
