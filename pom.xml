@@ -34,6 +34,19 @@
         </developer>
     </developers>
 
+  <distributionManagement>
+    <repository>
+      <id>github.release.repo</id>
+      <name>Release Repository</name>
+      <url>file:///dev/bulldog-repo/repo/releases</url>
+    </repository>
+    <snapshotRepository>
+      <id>github.snapshot.repo</id>
+      <name>Snapshot Repository</name>
+      <url>file:///dev/bulldog-repo/repo/snapshots</url>
+    </snapshotRepository>
+  </distributionManagement>
+
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <github.global.server>github</github.global.server>
@@ -203,16 +216,5 @@
             </plugins>
         </pluginManagement>
   </build>
-  
-  <distributionManagement>
-    <repository>
-      <id>github.release.repo</id>
-      <url>file:///dev/bulldog-repo/repo/releases</url>
-    </repository>
-    <snapshotRepository>
-      <id>github.snapshot.repo</id>
-      <url>file:///dev/bulldog-repo/repo/snapshots</url>
-    </snapshotRepository>
-  </distributionManagement>
   
 </project>
