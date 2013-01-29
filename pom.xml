@@ -3,7 +3,7 @@
 
   <groupId>com.leansoft</groupId>
   <artifactId>bigqueue</artifactId>
-  <version>0.6.0</version>
+  <version>0.6.0-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>bigqueue</name>
@@ -11,8 +11,8 @@
   
   <description>Light, fast and persistent queue.</description>
   <scm>
-        <connection>scm:git:ssh:git@github.com:bulldog2011/bigqueue.git</connection>
-        <developerConnection>scm:git:ssh:git@github.com:bulldog2011/bigqueue.git</developerConnection>
+        <connection>scm:git:ssh://git@github.com/bulldog2011/bigqueue.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/bulldog2011/bigqueue.git</developerConnection>
         <url>https://github.com/bulldog2011/bigqueue</url>
   </scm>
     <licenses>
