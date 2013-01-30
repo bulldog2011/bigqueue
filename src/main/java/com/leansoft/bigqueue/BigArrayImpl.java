@@ -2,6 +2,7 @@ package com.leansoft.bigqueue;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
@@ -508,5 +509,66 @@ public class BigArrayImpl implements IBigArray {
 		} finally {
 			arrayWriteLock.unlock();
 		}
+	}
+
+	@Override
+	public long getClosestIndex(long timestamp) throws IOException {
+		try {
+			arrayReadLock.lock();
+			long closestIndex = NOT_FOUND;
+			if (this.isEmpty()) return closestIndex;
+			long tailIndex = this.arrayTailIndex.get();
+			long headIndex = this.arrayHeadIndex.get();
+			long lastIndex = headIndex - 1;
+			if (lastIndex < 0) {
+				lastIndex = Long.MAX_VALUE;
+			}
+			if (tailIndex <= lastIndex) {
+				closestIndex = closestBinarySearch(tailIndex, lastIndex, timestamp);
+			} else {
+				long lowPartClosestIndex = closestBinarySearch(0L, lastIndex, timestamp);
+				long highPartClosetIndex = closestBinarySearch(tailIndex, Long.MAX_VALUE, timestamp);
+				
+				long lowPartTimestamp = this.getTimestamp(lowPartClosestIndex);
+				long highPartTimestamp = this.getTimestamp(highPartClosetIndex);
+				
+				closestIndex = Math.abs(timestamp - lowPartTimestamp) < Math.abs(timestamp - highPartTimestamp) 
+						? lowPartClosestIndex : highPartClosetIndex;
+			}
+			
+			return closestIndex;
+		} finally {
+			arrayReadLock.unlock();
+		}
+	}
+	
+	private long closestBinarySearch(long low, long high, long timestamp) throws IOException {    		
+        long mid;
+        long sum = low + high;
+        if (sum < 0) { // overflow
+        	BigInteger bigSum = BigInteger.valueOf(low);
+        	bigSum = bigSum.add(BigInteger.valueOf(high));
+        	mid = bigSum.shiftRight(1).longValue();
+        } else {
+        	mid = sum / 2;
+        }
+        
+    	long midTimestamp = this.getTimestamp(mid);
+    	
+    	if (midTimestamp < timestamp) {
+    		long nextLow = mid + 1;
+    		if (nextLow > high) {
+    			return high;
+    		}
+    		return closestBinarySearch(nextLow, high, timestamp);
+    	} else if (midTimestamp > timestamp) {
+    		long nextHigh = mid - 1;
+    		if (nextHigh < low) {
+    			return low;
+    		}
+    		return closestBinarySearch(low, nextHigh, timestamp);
+    	} else {
+    		return mid;
+    	}
 	}
 }

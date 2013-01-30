@@ -11,6 +11,8 @@ import java.io.IOException;
  */
 public interface IBigArray extends Closeable {
 	
+	public static final long NOT_FOUND = 1;
+	
 	/**
 	 * Append the data into the head of the array
 	 * 
@@ -117,4 +119,13 @@ public interface IBigArray extends Closeable {
 	 * call this periodically only if you need transactional reliability and you are aware of the cost to performance.
 	 */
 	void flush();
+	
+	/**
+	 * Get an index closest to the specific timestamp when the corresponding item was appended
+	 * 
+	 * @param timestamp when the corresponding item was appended
+	 * @return an index
+	 * @throws IOException exception thrown if there was any IO error during the getClosestIndex operation
+	 */
+	long getClosestIndex(long timestamp) throws IOException;
 }
