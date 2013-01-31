@@ -2,7 +2,6 @@ package com.leansoft.bigqueue;
 
 import java.io.File;
 import java.io.IOException;
-import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
@@ -35,71 +34,71 @@ import com.leansoft.bigqueue.utils.FileUtil;
 public class BigArrayImpl implements IBigArray {
 	
 	// folder name for index page
-	private final static String INDEX_PAGE_FOLDER = "index";
+	final static String INDEX_PAGE_FOLDER = "index";
 	// folder name for data page
-	private final static String DATA_PAGE_FOLDER = "data";
+	final static String DATA_PAGE_FOLDER = "data";
 	// folder name for meta data page
-	private final static String META_DATA_PAGE_FOLDER = "meta_data";
+	final static String META_DATA_PAGE_FOLDER = "meta_data";
 	
 	// 2 ^ 20 = 1024 * 1024
-	private final static int INDEX_ITEMS_PER_PAGE_BITS = 20; // 1024 * 1024
+	final static int INDEX_ITEMS_PER_PAGE_BITS = 20; // 1024 * 1024
 	// number of items per page
-	private final static int INDEX_ITEMS_PER_PAGE = 1 << INDEX_ITEMS_PER_PAGE_BITS;
+	final static int INDEX_ITEMS_PER_PAGE = 1 << INDEX_ITEMS_PER_PAGE_BITS;
 	// 2 ^ 5 = 32
-	private final static int INDEX_ITEM_LENGTH_BITS = 5;
+	final static int INDEX_ITEM_LENGTH_BITS = 5;
 	// length in bytes of an index item
-	private final static int INDEX_ITEM_LENGTH = 1 << INDEX_ITEM_LENGTH_BITS; 
+	final static int INDEX_ITEM_LENGTH = 1 << INDEX_ITEM_LENGTH_BITS; 
 	// size in bytes of an index page
-	private final static int INDEX_PAGE_SIZE = INDEX_ITEM_LENGTH * INDEX_ITEMS_PER_PAGE; 
+	final static int INDEX_PAGE_SIZE = INDEX_ITEM_LENGTH * INDEX_ITEMS_PER_PAGE; 
 	// size in bytes of a data page
-	private final static int DATA_PAGE_SIZE = 128 * 1024 * 1024;
+	final static int DATA_PAGE_SIZE = 128 * 1024 * 1024;
 	// seconds, time to live for index page cached in memory
-	private final static int INDEX_PAGE_CACHE_TTL = 1000;
+	final static int INDEX_PAGE_CACHE_TTL = 1000;
 	// seconds, time to live for data page cached in memory
-	private final static int DATA_PAGE_CACHE_TTL = 1000;
+	final static int DATA_PAGE_CACHE_TTL = 1000;
 	// 2 ^ 4 = 16
-	private final static int META_DATA_ITEM_LENGTH_BITS = 4;
+	final static int META_DATA_ITEM_LENGTH_BITS = 4;
 	// size in bytes of a meta data page
-	private final static int META_DATA_PAGE_SIZE = 1 << META_DATA_ITEM_LENGTH_BITS;
+	final static int META_DATA_PAGE_SIZE = 1 << META_DATA_ITEM_LENGTH_BITS;
 	
 //	private final static int INDEX_ITEM_DATA_PAGE_INDEX_OFFSET = 0;
 //	private final static int INDEX_ITEM_DATA_ITEM_OFFSET_OFFSET = 8;
 //	private final static int INDEX_ITEM_DATA_ITEM_LENGTH_OFFSET = 12;
 	// timestamp offset of an data item within an index item
-	private final static int INDEX_ITEM_DATA_ITEM_TIMESTAMP_OFFSET = 16;
+	final static int INDEX_ITEM_DATA_ITEM_TIMESTAMP_OFFSET = 16;
 	
 	// directory to persist array data
-	private String arrayDirectory;
+	String arrayDirectory;
 	
 	// factory for index page management(acquire, release, cache)
-	private IMappedPageFactory indexPageFactory; 
+	IMappedPageFactory indexPageFactory; 
 	// factory for data page management(acquire, release, cache)
-	private IMappedPageFactory dataPageFactory;
+	IMappedPageFactory dataPageFactory;
 	// factory for meta data page management(acquire, release, cache)
-	private IMappedPageFactory metaPageFactory;
+	IMappedPageFactory metaPageFactory;
 	
 	// only use the first page
-	private static final long META_DATA_PAGE_INDEX = 0;
+	static final long META_DATA_PAGE_INDEX = 0;
 	
 	// head index of the big array, this is the read write barrier.
 	// readers can only read items before this index, and writes can write this index or after
-	private final AtomicLong arrayHeadIndex = new AtomicLong();
+	final AtomicLong arrayHeadIndex = new AtomicLong();
 	// tail index of the big array,
 	// readers can't read items before this tail
-	private final AtomicLong arrayTailIndex = new AtomicLong();
+	final AtomicLong arrayTailIndex = new AtomicLong();
 	
 	// head index of the data page, this is the to be appended data page index
-	private long headDataPageIndex;
+	long headDataPageIndex;
 	// head offset of the data page, this is the to be appended data offset
-	private int headDataItemOffset;
+	int headDataItemOffset;
 	
 	// lock for appending state management
-	private final Lock appendLock = new ReentrantLock();
+	final Lock appendLock = new ReentrantLock();
 	
 	// global lock for array read and write management
-    private final ReadWriteLock arrayReadWritelock = new ReentrantReadWriteLock();
-    private final Lock arrayReadLock = arrayReadWritelock.readLock();
-    private final Lock arrayWriteLock = arrayReadWritelock.writeLock(); 
+    final ReadWriteLock arrayReadWritelock = new ReentrantReadWriteLock();
+    final Lock arrayReadLock = arrayReadWritelock.readLock();
+    final Lock arrayWriteLock = arrayReadWritelock.writeLock(); 
 	
 	/**
 	 * 
@@ -130,7 +129,7 @@ public class BigArrayImpl implements IBigArray {
 	}
 	
 	
-	private void commonInit() throws IOException {
+	void commonInit() throws IOException {
 		// initialize page factories
 		this.indexPageFactory = new MappedPageFactoryImpl(INDEX_PAGE_SIZE, 
 				this.arrayDirectory + INDEX_PAGE_FOLDER, 
@@ -219,7 +218,7 @@ public class BigArrayImpl implements IBigArray {
 	}
 	
 	// find out array head/tail from the meta data
-	private void initArrayIndex() throws IOException {
+	void initArrayIndex() throws IOException {
 		IMappedPage metaDataPage = this.metaPageFactory.acquirePage(META_DATA_PAGE_INDEX);
 		ByteBuffer metaBuf = metaDataPage.getLocal(0);
 		long head = metaBuf.getLong();
@@ -230,7 +229,7 @@ public class BigArrayImpl implements IBigArray {
 	}
 	
 	// find out data page head index and offset
-	private void initDataPageIndex() throws IOException {
+	void initDataPageIndex() throws IOException {
 
 		if (this.isEmpty()) {
 			headDataPageIndex = 0L;
@@ -409,7 +408,7 @@ public class BigArrayImpl implements IBigArray {
 		}
 	}
 	
-	private ByteBuffer getIndexItemBuffer(long index) throws IOException {
+	ByteBuffer getIndexItemBuffer(long index) throws IOException {
 		
 		IMappedPage indexPage = null;
 		long indexPageIndex = -1L;
@@ -427,7 +426,7 @@ public class BigArrayImpl implements IBigArray {
 		}
 	}
 	
-	private void validateIndex(long index) {
+	void validateIndex(long index) {
 		if (this.arrayTailIndex.get() <= this.arrayHeadIndex.get()) {
 			if (index < this.arrayTailIndex.get() || index >= this.arrayHeadIndex.get()) {
 				throw new IndexOutOfBoundsException();
@@ -511,64 +510,64 @@ public class BigArrayImpl implements IBigArray {
 		}
 	}
 
-	@Override
-	public long getClosestIndex(long timestamp) throws IOException {
-		try {
-			arrayReadLock.lock();
-			long closestIndex = NOT_FOUND;
-			if (this.isEmpty()) return closestIndex;
-			long tailIndex = this.arrayTailIndex.get();
-			long headIndex = this.arrayHeadIndex.get();
-			long lastIndex = headIndex - 1;
-			if (lastIndex < 0) {
-				lastIndex = Long.MAX_VALUE;
-			}
-			if (tailIndex <= lastIndex) {
-				closestIndex = closestBinarySearch(tailIndex, lastIndex, timestamp);
-			} else {
-				long lowPartClosestIndex = closestBinarySearch(0L, lastIndex, timestamp);
-				long highPartClosetIndex = closestBinarySearch(tailIndex, Long.MAX_VALUE, timestamp);
-				
-				long lowPartTimestamp = this.getTimestamp(lowPartClosestIndex);
-				long highPartTimestamp = this.getTimestamp(highPartClosetIndex);
-				
-				closestIndex = Math.abs(timestamp - lowPartTimestamp) < Math.abs(timestamp - highPartTimestamp) 
-						? lowPartClosestIndex : highPartClosetIndex;
-			}
-			
-			return closestIndex;
-		} finally {
-			arrayReadLock.unlock();
-		}
-	}
-	
-	private long closestBinarySearch(long low, long high, long timestamp) throws IOException {    		
-        long mid;
-        long sum = low + high;
-        if (sum < 0) { // overflow
-        	BigInteger bigSum = BigInteger.valueOf(low);
-        	bigSum = bigSum.add(BigInteger.valueOf(high));
-        	mid = bigSum.shiftRight(1).longValue();
-        } else {
-        	mid = sum / 2;
-        }
-        
-    	long midTimestamp = this.getTimestamp(mid);
-    	
-    	if (midTimestamp < timestamp) {
-    		long nextLow = mid + 1;
-    		if (nextLow > high) {
-    			return high;
-    		}
-    		return closestBinarySearch(nextLow, high, timestamp);
-    	} else if (midTimestamp > timestamp) {
-    		long nextHigh = mid - 1;
-    		if (nextHigh < low) {
-    			return low;
-    		}
-    		return closestBinarySearch(low, nextHigh, timestamp);
-    	} else {
-    		return mid;
-    	}
-	}
+//	@Override
+//	public long getClosestIndex(long timestamp) throws IOException {
+//		try {
+//			arrayReadLock.lock();
+//			long closestIndex = NOT_FOUND;
+//			if (this.isEmpty()) return closestIndex;
+//			long tailIndex = this.arrayTailIndex.get();
+//			long headIndex = this.arrayHeadIndex.get();
+//			long lastIndex = headIndex - 1;
+//			if (lastIndex < 0) {
+//				lastIndex = Long.MAX_VALUE;
+//			}
+//			if (tailIndex <= lastIndex) {
+//				closestIndex = closestBinarySearch(tailIndex, lastIndex, timestamp);
+//			} else {
+//				long lowPartClosestIndex = closestBinarySearch(0L, lastIndex, timestamp);
+//				long highPartClosetIndex = closestBinarySearch(tailIndex, Long.MAX_VALUE, timestamp);
+//				
+//				long lowPartTimestamp = this.getTimestamp(lowPartClosestIndex);
+//				long highPartTimestamp = this.getTimestamp(highPartClosetIndex);
+//				
+//				closestIndex = Math.abs(timestamp - lowPartTimestamp) < Math.abs(timestamp - highPartTimestamp) 
+//						? lowPartClosestIndex : highPartClosetIndex;
+//			}
+//			
+//			return closestIndex;
+//		} finally {
+//			arrayReadLock.unlock();
+//		}
+//	}
+//	
+//	private long closestBinarySearch(long low, long high, long timestamp) throws IOException {    		
+//        long mid;
+//        long sum = low + high;
+//        if (sum < 0) { // overflow
+//        	BigInteger bigSum = BigInteger.valueOf(low);
+//        	bigSum = bigSum.add(BigInteger.valueOf(high));
+//        	mid = bigSum.shiftRight(1).longValue();
+//        } else {
+//        	mid = sum / 2;
+//        }
+//        
+//    	long midTimestamp = this.getTimestamp(mid);
+//    	
+//    	if (midTimestamp < timestamp) {
+//    		long nextLow = mid + 1;
+//    		if (nextLow > high) {
+//    			return high;
+//    		}
+//    		return closestBinarySearch(nextLow, high, timestamp);
+//    	} else if (midTimestamp > timestamp) {
+//    		long nextHigh = mid - 1;
+//    		if (nextHigh < low) {
+//    			return low;
+//    		}
+//    		return closestBinarySearch(low, nextHigh, timestamp);
+//    	} else {
+//    		return mid;
+//    	}
+//	}
 }

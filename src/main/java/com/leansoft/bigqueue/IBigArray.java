@@ -120,12 +120,12 @@ public interface IBigArray extends Closeable {
 	 */
 	void flush();
 	
-	/**
-	 * Get an index closest to the specific timestamp when the corresponding item was appended
-	 * 
-	 * @param timestamp when the corresponding item was appended
-	 * @return an index
-	 * @throws IOException exception thrown if there was any IO error during the getClosestIndex operation
-	 */
-	long getClosestIndex(long timestamp) throws IOException;
+//	/**
+//	 * Get an index closest to the specific timestamp when the corresponding item was appended
+//	 * 
+//	 * @param timestamp when the corresponding item was appended
+//	 * @return an index
+//	 * @throws IOException exception thrown if there was any IO error during the getClosestIndex operation
+//	 */
+//	long getClosestIndex(long timestamp) throws IOException;
 }

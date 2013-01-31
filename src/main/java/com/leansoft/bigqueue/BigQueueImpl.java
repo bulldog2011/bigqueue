@@ -27,26 +27,26 @@ import com.leansoft.bigqueue.page.MappedPageFactoryImpl;
  */
 public class BigQueueImpl implements IBigQueue {
 	
-	private final IBigArray innerArray;
+	final IBigArray innerArray;
 	
 	// 2 ^ 3 = 8
-	private final static int QUEUE_FRONT_INDEX_ITEM_LENGTH_BITS = 3;
+	final static int QUEUE_FRONT_INDEX_ITEM_LENGTH_BITS = 3;
 	// size in bytes of queue front index page
-	private final static int QUEUE_FRONT_INDEX_PAGE_SIZE = 1 << QUEUE_FRONT_INDEX_ITEM_LENGTH_BITS;
+	final static int QUEUE_FRONT_INDEX_PAGE_SIZE = 1 << QUEUE_FRONT_INDEX_ITEM_LENGTH_BITS;
 	// only use the first page
-	private static final long QUEUE_FRONT_PAGE_INDEX = 0;
+	static final long QUEUE_FRONT_PAGE_INDEX = 0;
 	
 	// folder name for queue front index page
-	private final static String QUEUE_FRONT_INDEX_PAGE_FOLDER = "front_index";
+	final static String QUEUE_FRONT_INDEX_PAGE_FOLDER = "front_index";
 	
 	// front index of the big queue,
-	private final AtomicLong queueFrontIndex = new AtomicLong();
+	final AtomicLong queueFrontIndex = new AtomicLong();
 	
 	// factory for queue front index page management(acquire, release, cache)
-	private IMappedPageFactory queueFrontIndexPageFactory;
+	IMappedPageFactory queueFrontIndexPageFactory;
 	
 	// locks for queue front write management
-    private final Lock queueFrontWriteLock = new ReentrantLock();
+    final Lock queueFrontWriteLock = new ReentrantLock();
 	
 	/**
      * A big, fast and persistent queue implementation.

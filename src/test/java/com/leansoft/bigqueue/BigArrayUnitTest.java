@@ -220,37 +220,37 @@ public class BigArrayUnitTest {
 		System.out.println("Time used to randomly read " + loop + " items : " + timeInSeconds + " seconds.");
 	}
 	
-	@Test
-	public void getClosestIndexTest() throws IOException {
-	    bigArray = new BigArrayImpl(testDir, "get_closest_index_test");
-		assertNotNull(bigArray);
-		
-		assertTrue(IBigArray.NOT_FOUND == bigArray.getClosestIndex(System.currentTimeMillis()));
-		
-		int loop = 2000000;
-		long begin = System.currentTimeMillis();
-		TestUtil.sleepQuietly(500);
-		for(int i = 0; i < loop; i++) {
-			bigArray.append(("" + i).getBytes());
-		}
-		TestUtil.sleepQuietly(500);
-		long end = System.currentTimeMillis();
-		
-		long midTs = (end + begin) / 2;
-		
-		assertTrue(0L == bigArray.getClosestIndex(begin));
-		assertTrue(loop - 1 == bigArray.getClosestIndex(end));
-
-		long midIndex = bigArray.getClosestIndex(midTs);
-		assertTrue(0L < midIndex);
-		assertTrue(loop -1 > midIndex);
-		
-		long closestTime = bigArray.getTimestamp(midIndex);
-		long closestTimeBefore = bigArray.getTimestamp(midIndex - 1);
-		long closestTimeAfter = bigArray.getTimestamp(midIndex + 1);
-		assertTrue(closestTimeBefore <= closestTime);
-		assertTrue(closestTimeAfter >= closestTime);		
-	}
+//	@Test
+//	public void getClosestIndexTest() throws IOException {
+//	    bigArray = new BigArrayImpl(testDir, "get_closest_index_test");
+//		assertNotNull(bigArray);
+//		
+//		assertTrue(IBigArray.NOT_FOUND == bigArray.getClosestIndex(System.currentTimeMillis()));
+//		
+//		int loop = 2000000;
+//		long begin = System.currentTimeMillis();
+//		TestUtil.sleepQuietly(500);
+//		for(int i = 0; i < loop; i++) {
+//			bigArray.append(("" + i).getBytes());
+//		}
+//		TestUtil.sleepQuietly(500);
+//		long end = System.currentTimeMillis();
+//		
+//		long midTs = (end + begin) / 2;
+//		
+//		assertTrue(0L == bigArray.getClosestIndex(begin));
+//		assertTrue(loop - 1 == bigArray.getClosestIndex(end));
+//
+//		long midIndex = bigArray.getClosestIndex(midTs);
+//		assertTrue(0L < midIndex);
+//		assertTrue(loop -1 > midIndex);
+//		
+//		long closestTime = bigArray.getTimestamp(midIndex);
+//		long closestTimeBefore = bigArray.getTimestamp(midIndex - 1);
+//		long closestTimeAfter = bigArray.getTimestamp(midIndex + 1);
+//		assertTrue(closestTimeBefore <= closestTime);
+//		assertTrue(closestTimeAfter >= closestTime);		
+//	}
 	
 	@After
 	public void clean() throws IOException {
