@@ -1,0 +1,152 @@
+html {
+  background-color: #fff;
+}
+
+body {
+  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, FreeSerif, serif;
+  color: #333;
+  font-size: 1em;
+  line-height: 1.5em;
+  color: #252519;
+  margin: 0; padding: 0;
+}
+
+#container {
+  position: relative;
+  width: 750px;
+  margin: 0 auto;
+}
+
+#footer {
+  border-top: 1px solid #999;
+  margin-top: 30px;
+  padding: 10px 0;
+  color: #666;
+  font-size: 1em;
+}
+
+#footer a, #footer a:visited {
+  color: #666;
+  text-decoration: none;
+}
+
+#footer a:hover {
+  text-decoration: underline;
+}
+
+#footer strong {
+  font-weight: bold;
+}
+
+ul, ol {
+  list-style: disc outside none;
+  padding-left: 20px;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+ol {
+  list-style: decimal outside none;
+}
+
+/*--------------------- Typography -----------------------*/
+
+a, a:visited {
+  color: #d11e27;
+}
+
+a:hover {
+  text-decoration: none;
+}
+  
+p {
+  margin: 0 0 15px 0;
+}
+
+em {
+  font-style: italic;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 0px 0 15px 0;
+}
+
+h1 {
+  margin: 40px 0 45px 0;
+  font-size: 2.5em;
+  line-height: 1.3em;
+  font-weight: normal;
+}
+
+h2 {
+  margin: 30px 0 20px 0;
+  font-size: 1.5em;
+  line-height: 1.3em;
+  font-weight: bold;
+  border-bottom: 1px solid #999;
+}
+
+h3 {
+  font-size: 1.2em;
+  line-height: 1.2em;
+  font-weight: bold;  
+}
+
+#footer {
+  font-family: helvetica, arial, clean, sans-serif;
+  font-size: 0.875em;
+  line-height: 1.4em;
+}
+
+/** Custom styles **/
+
+.forkme {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  -webkit-transition-property: opacity;
+  -webkit-transition-duration: 0.2s;
+  -webkit-transition-timing-function: ease-out;
+     -moz-transition-property: opacity;
+     -moz-transition-duration: 0.2s;
+     -moz-transition-timing-function: ease-out;
+}
+    
+.forkme:hover {
+  opacity: 0.7;
+}
+
+/** Style for travis build info image **/
+h1 a img {
+  padding: 0 0 4px 15px;
+}
+
+pre, tt, code {
+  font-family: Monaco, Consolas, "Lucida Console", monospace;
+}
+
+code {
+  font-size: 0.75em;
+  line-height: 1.3em;
+  background-color: #F5F5FF;
+  padding: 0 2px;
+  border: 1px solid #d0d0ee;
+}
+
+pre code {
+  background-color: transparent;
+  padding: 0;
+  border: none;
+}
+
+pre {
+  margin: 15px 0;
+  padding: 3px 0 3px 15px;
+  border-left: 5px solid #d0d0ee;
+  color: #444466;
+  font-weight: normal;
+  font-style: normal;
+  font-size: 1em;
+  line-height: 1.15em;
+}
