@@ -109,6 +109,18 @@ public class BigQueueUnitTest {
 		System.out.println("Time used to dequeue " + loop + " items : " + timeInSeconds + " seconds.");
 	}
 	
+	@Test
+	public void testInvalidDataPageSize() throws IOException {
+		try {
+			bigQueue = new BigQueueImpl(testDir, "testInvalidDataPageSize", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE - 1);
+			fail("should throw invalid page size exception");
+		} catch (IllegalArgumentException iae) {
+			// ecpected
+		}
+		// ok
+		bigQueue = new BigQueueImpl(testDir, "testInvalidDataPageSize", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE);
+	}
+	
 	
 	@After
 	public void clean() throws IOException {

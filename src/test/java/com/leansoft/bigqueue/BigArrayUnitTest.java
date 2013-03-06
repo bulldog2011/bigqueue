@@ -220,11 +220,173 @@ public class BigArrayUnitTest {
 		System.out.println("Time used to randomly read " + loop + " items : " + timeInSeconds + " seconds.");
 	}
 	
+	@Test
+	public void getClosestIndexTest() throws IOException {
+	    bigArray = new BigArrayImpl(testDir, "get_closest_index_test");
+		assertNotNull(bigArray);
+		
+		assertTrue(IBigArray.NOT_FOUND == bigArray.getClosestIndex(System.currentTimeMillis()));
+		
+		int loop = 2000000;
+		long begin = System.currentTimeMillis();
+		TestUtil.sleepQuietly(500);
+		for(int i = 0; i < loop; i++) {
+			bigArray.append(("" + i).getBytes());
+		}
+		TestUtil.sleepQuietly(500);
+		long end = System.currentTimeMillis();
+		
+		long midTs = (end + begin) / 2;
+		
+		assertTrue(0L == bigArray.getClosestIndex(begin));
+		assertTrue(loop - 1 == bigArray.getClosestIndex(end));
+
+		long midIndex = bigArray.getClosestIndex(midTs);
+		assertTrue(0L < midIndex);
+		assertTrue(loop -1 > midIndex);
+		
+		long closestTime = bigArray.getTimestamp(midIndex);
+		long closestTimeBefore = bigArray.getTimestamp(midIndex - 1);
+		long closestTimeAfter = bigArray.getTimestamp(midIndex + 1);
+		assertTrue(closestTimeBefore <= closestTime);
+		assertTrue(closestTimeAfter >= closestTime);		
+	}
+	
+	@Test
+	public void getBackFileSizeTest() throws IOException {
+	    bigArray = new BigArrayImpl(testDir, "get_back_file_size_test");
+		assertNotNull(bigArray);
+		
+		assertTrue(bigArray.getBackFileSize() == 0);
+		
+		bigArray.append("hello".getBytes());
+		assertTrue(bigArray.getBackFileSize() == BigArrayImpl.INDEX_PAGE_SIZE + bigArray.getDataPageSize());
+		
+		long loop = 3000000;
+		String randomString = TestUtil.randomString(256);
+		for(long i = 0; i < loop; i++) {
+			bigArray.append(randomString.getBytes());
+		}
+		
+		long realSize = bigArray.getBackFileSize();
+		long expectedSize = BigArrayImpl.INDEX_PAGE_SIZE * 3 + bigArray.getDataPageSize() * 6;
+		
+		assertTrue(expectedSize == realSize);
+		
+		bigArray.removeBeforeIndex(loop / 2);
+		
+		realSize = bigArray.getBackFileSize();
+		expectedSize = BigArrayImpl.INDEX_PAGE_SIZE * 2 + bigArray.getDataPageSize() * 4;
+		
+		assertTrue(expectedSize == realSize);
+		
+		bigArray.removeAll();
+		
+		assertTrue(bigArray.getBackFileSize() == 0);
+	}
+	
+	@Test
+	public void limitBackFileSize() throws IOException {
+	    bigArray = new BigArrayImpl(testDir, "limit_back_file_size_test");
+		assertNotNull(bigArray);
+		
+		assertTrue(bigArray.getBackFileSize() == 0);
+		
+		bigArray.append("hello".getBytes());
+		assertTrue(bigArray.getBackFileSize() == BigArrayImpl.INDEX_PAGE_SIZE + bigArray.getDataPageSize());
+		
+		
+		bigArray.limitBackFileSize(bigArray.getDataPageSize()); // no effect
+		assertTrue(bigArray.getBackFileSize() == BigArrayImpl.INDEX_PAGE_SIZE + bigArray.getDataPageSize());
+		
+		long loop = 3000000;
+		String randomString = TestUtil.randomString(256);
+		for(long i = 0; i < loop; i++) {
+			bigArray.append(randomString.getBytes());
+		}
+		
+		bigArray.limitBackFileSize(BigArrayImpl.INDEX_PAGE_SIZE * 2 + bigArray.getDataPageSize() * 3);
+		assertTrue(bigArray.getBackFileSize() <= BigArrayImpl.INDEX_PAGE_SIZE * 2 + bigArray.getDataPageSize() * 3);
+		assertTrue(bigArray.getBackFileSize() > BigArrayImpl.INDEX_PAGE_SIZE + bigArray.getDataPageSize() * 2);
+		long lastTailIndex = bigArray.getTailIndex();
+		assertTrue(lastTailIndex > 0);
+		assertTrue(bigArray.getHeadIndex() == loop + 1);
+		
+		bigArray.limitBackFileSize(BigArrayImpl.INDEX_PAGE_SIZE + bigArray.getDataPageSize() * 2);
+		assertTrue(bigArray.getBackFileSize() <= BigArrayImpl.INDEX_PAGE_SIZE + bigArray.getDataPageSize() * 2);
+		assertTrue(bigArray.getBackFileSize() > BigArrayImpl.INDEX_PAGE_SIZE + bigArray.getDataPageSize());
+		assertTrue(bigArray.getTailIndex() > lastTailIndex);
+		lastTailIndex = bigArray.getTailIndex();
+		assertTrue(bigArray.getHeadIndex() == loop + 1);
+		
+		bigArray.limitBackFileSize(BigArrayImpl.INDEX_PAGE_SIZE + bigArray.getDataPageSize());
+		assertTrue(bigArray.getBackFileSize() == BigArrayImpl.INDEX_PAGE_SIZE + bigArray.getDataPageSize());
+		assertTrue(bigArray.getTailIndex() > lastTailIndex);
+		lastTailIndex = bigArray.getTailIndex();
+		assertTrue(bigArray.getHeadIndex() == loop + 1);
+		
+		bigArray.append("world".getBytes());
+		
+		assertTrue(bigArray.getTailIndex() == lastTailIndex);
+		assertTrue(bigArray.getHeadIndex() == loop + 2);
+	}
+	
+	@Test
+	public void getItemLength() throws IOException {
+		bigArray = new BigArrayImpl(testDir, "get_data_length_test");
+		assertNotNull(bigArray);
+		
+		for(int i = 1; i <= 1000; i++) {
+			bigArray.append(TestUtil.randomString(i).getBytes());
+		}
+		
+		for(int i = 1; i <= 1000; i++) {
+			int length = bigArray.getItemLength(i - 1);
+			assertTrue(length == i);
+		}
+	}
+	
+	@Test
+	public void testInvalidDataPageSize() throws IOException {
+		try {
+			bigArray = new BigArrayImpl(testDir, "get_data_length_test", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE - 1);
+			fail("should throw invalid page size exception");
+		} catch (IllegalArgumentException iae) {
+			// ecpected
+		}
+	}
+	
+	@Test
+	public void testMinimumDataPageSize() throws IOException {
+		bigArray = new BigArrayImpl(testDir, "get_data_length_test", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE);
+		
+		String randomString = TestUtil.randomString(BigArrayImpl.MINIMUM_DATA_PAGE_SIZE / (1024 * 1024));
+		
+		for(int i = 0; i < 1024 * 1024; i++) {
+			bigArray.append(randomString.getBytes());
+		}
+		
+		assertTrue(64 * 1024 * 1024 == bigArray.getBackFileSize());
+		
+		for(int i = 0; i < 1024 * 1024 * 10; i++) {
+			bigArray.append(randomString.getBytes());
+		}
+		
+		assertTrue(11 * 64 * 1024 * 1024 == bigArray.getBackFileSize());
+		
+		bigArray.removeBeforeIndex(1024 * 1024);
+		
+		assertTrue(10 * 64 * 1024 * 1024 == bigArray.getBackFileSize());
+		
+		bigArray.removeBeforeIndex(1024 * 1024 * 2);
+		
+		assertTrue(9 * 64 * 1024 * 1024 == bigArray.getBackFileSize());
+	}
+	
 	@After
 	public void clean() throws IOException {
 		if (bigArray != null) {
 			bigArray.removeAll();
 		}
 	}
-
 }

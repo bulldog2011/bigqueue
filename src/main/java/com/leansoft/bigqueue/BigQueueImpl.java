@@ -49,14 +49,27 @@ public class BigQueueImpl implements IBigQueue {
     final Lock queueFrontWriteLock = new ReentrantLock();
 	
 	/**
-     * A big, fast and persistent queue implementation.
+     * A big, fast and persistent queue implementation,
+     * use default back data page size, see {@link BigArrayImpl#DEFAULT_DATA_PAGE_SIZE}
 	 * 
 	 * @param queueDir the directory to store queue data
 	 * @param queueName the name of the queue, will be appended as last part of the queue directory
 	 * @throws IOException exception throws if there is any IO error during queue initialization
 	 */
 	public BigQueueImpl(String queueDir, String queueName) throws IOException {
-		innerArray = new BigArrayImpl(queueDir, queueName);
+		this(queueDir, queueName, BigArrayImpl.DEFAULT_DATA_PAGE_SIZE);
+	}
+	
+	/**
+	 * A big, fast and persistent queue implementation.
+	 * 
+	 * @param queueDir  the directory to store queue data
+	 * @param queueName the name of the queue, will be appended as last part of the queue directory
+	 * @param pageSize the back data file size per page in bytes, see minimum allowed {@link BigArrayImpl#MINIMUM_DATA_PAGE_SIZE}
+	 * @throws IOException exception throws if there is any IO error during queue initialization
+	 */
+	public BigQueueImpl(String queueDir, String queueName, int pageSize) throws IOException {
+		innerArray = new BigArrayImpl(queueDir, queueName, pageSize);
 		
 		// the ttl does not matter here since queue front index page is always cached
 		this.queueFrontIndexPageFactory = new MappedPageFactoryImpl(QUEUE_FRONT_INDEX_PAGE_SIZE, 

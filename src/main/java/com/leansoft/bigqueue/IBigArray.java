@@ -50,6 +50,14 @@ public interface IBigArray extends Closeable {
 	 */
 	long size();
 	
+	
+	/**
+	 * Get the back data file size per page.
+	 * 
+	 * @return size per page
+	 */
+	int getDataPageSize();
+	
 	/**
 	 * The head of the array.
 	 * 
@@ -119,4 +127,41 @@ public interface IBigArray extends Closeable {
 	 * call this periodically only if you need transactional reliability and you are aware of the cost to performance.
 	 */
 	void flush();
+	
+	/**
+	 * Get an index closest to the specific timestamp when the corresponding item was appended
+	 * 
+	 * @param timestamp when the corresponding item was appended
+	 * @return an index
+	 * @throws IOException exception thrown if there was any IO error during the getClosestIndex operation
+	 */
+	long getClosestIndex(long timestamp) throws IOException;
+	
+	
+	/**
+	 * Get total size of back files(index and data files) of the big array
+	 * 
+	 * @return total size of back files
+	 * @throws IOException exception thrown if there was any IO error during the getBackFileSize operation
+	 */
+	long getBackFileSize() throws IOException;
+	
+	/**
+	 * limit the back file size, truncate back file and advance array tail index accordingly,
+	 * Note, this is a best effort call, exact size limit can't be guaranteed
+	 * 
+	 * @param sizeLimit the size to limit
+	 * @throws IOException exception thrown if there was any IO error during the limitBackFileSize operation
+	 */
+	void limitBackFileSize(long sizeLimit) throws IOException;
+	
+	
+	/**
+	 * Get the data item length at specific index
+	 * 
+	 * @param index valid data index
+	 * @return the length of binary data if the index is valid
+	 * @throws IOException if there is any IO error
+	 */
+	int getItemLength(long index) throws IOException;
 }

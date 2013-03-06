@@ -2,6 +2,7 @@ package com.leansoft.bigqueue;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
@@ -50,8 +51,14 @@ public class BigArrayImpl implements IBigArray {
 	final static int INDEX_ITEM_LENGTH = 1 << INDEX_ITEM_LENGTH_BITS; 
 	// size in bytes of an index page
 	final static int INDEX_PAGE_SIZE = INDEX_ITEM_LENGTH * INDEX_ITEMS_PER_PAGE; 
+	
 	// size in bytes of a data page
-	final static int DATA_PAGE_SIZE = 128 * 1024 * 1024;
+	final int DATA_PAGE_SIZE;
+	
+	// default size in bytes of a data page
+	public final static int DEFAULT_DATA_PAGE_SIZE = 128 * 1024 * 1024;
+	// minimum size in bytes of a data page
+	public final static int MINIMUM_DATA_PAGE_SIZE = 32 * 1024 * 1024;
 	// seconds, time to live for index page cached in memory
 	final static int INDEX_PAGE_CACHE_TTL = 1000;
 	// seconds, time to live for data page cached in memory
@@ -63,7 +70,7 @@ public class BigArrayImpl implements IBigArray {
 	
 //	private final static int INDEX_ITEM_DATA_PAGE_INDEX_OFFSET = 0;
 //	private final static int INDEX_ITEM_DATA_ITEM_OFFSET_OFFSET = 8;
-//	private final static int INDEX_ITEM_DATA_ITEM_LENGTH_OFFSET = 12;
+	private final static int INDEX_ITEM_DATA_ITEM_LENGTH_OFFSET = 12;
 	// timestamp offset of an data item within an index item
 	final static int INDEX_ITEM_DATA_ITEM_TIMESTAMP_OFFSET = 16;
 	
@@ -102,13 +109,26 @@ public class BigArrayImpl implements IBigArray {
 	
 	/**
 	 * 
-	 * A big array implementation supporting sequential write and random read.
+	 * A big array implementation supporting sequential write and random read,
+	 * use default back data file size per page, see {@link #DEFAULT_DATA_PAGE_SIZE}.
 	 * 
 	 * @param arrayDir directory for array data store
 	 * @param arrayName the name of the array, will be appended as last part of the array directory
 	 * @throws IOException exception throws during array initialization
 	 */
 	public BigArrayImpl(String arrayDir, String arrayName) throws IOException {
+		this(arrayDir, arrayName, DEFAULT_DATA_PAGE_SIZE);
+	}
+	
+	/**
+	 * A big array implementation supporting sequential write and random read.
+	 * 
+	 * @param arrayDir directory for array data store
+	 * @param arrayName the name of the array, will be appended as last part of the array directory
+	 * @param pageSize the back data file size per page in bytes, see minimum allowed {@link #MINIMUM_DATA_PAGE_SIZE}.
+	 * @throws IOException exception throws during array initialization
+	 */
+	public BigArrayImpl(String arrayDir, String arrayName, int pageSize) throws IOException {
 		arrayDirectory = arrayDir;
 		if (!arrayDirectory.endsWith(File.separator)) {
 			arrayDirectory += File.separator;
@@ -120,6 +140,12 @@ public class BigArrayImpl implements IBigArray {
 		if (!FileUtil.isFilenameValid(arrayDirectory)) {
 			throw new IllegalArgumentException("invalid array directory : " + arrayDirectory);
 		}
+		
+		if (pageSize < MINIMUM_DATA_PAGE_SIZE) {
+			throw new IllegalArgumentException("invalid page size, allowed minimum is : " + MINIMUM_DATA_PAGE_SIZE + " bytes.");
+		}
+		
+		DATA_PAGE_SIZE = pageSize;
 		
 		this.commonInit();
 	}
@@ -508,5 +534,161 @@ public class BigArrayImpl implements IBigArray {
 		} finally {
 			arrayWriteLock.unlock();
 		}
+	}
+
+	@Override
+	public int getDataPageSize() {
+		return DATA_PAGE_SIZE;
+	}
+
+	@Override
+	public long getClosestIndex(long timestamp) throws IOException {
+		try {
+			arrayReadLock.lock();
+			long closestIndex = NOT_FOUND;
+			long tailIndex = this.arrayTailIndex.get();
+			long headIndex = this.arrayHeadIndex.get();
+			if (tailIndex == headIndex) return closestIndex; // empty
+			long lastIndex = headIndex - 1;
+			if (lastIndex < 0) {
+				lastIndex = Long.MAX_VALUE;
+			}
+			if (tailIndex < lastIndex) {
+				closestIndex = closestBinarySearch(tailIndex, lastIndex, timestamp);
+			} else {
+				long lowPartClosestIndex = closestBinarySearch(0L, lastIndex, timestamp);
+				long highPartClosetIndex = closestBinarySearch(tailIndex, Long.MAX_VALUE, timestamp);
+				
+				long lowPartTimestamp = this.getTimestamp(lowPartClosestIndex);
+				long highPartTimestamp = this.getTimestamp(highPartClosetIndex);
+				
+				closestIndex = Math.abs(timestamp - lowPartTimestamp) < Math.abs(timestamp - highPartTimestamp) 
+						? lowPartClosestIndex : highPartClosetIndex;
+			}
+			
+			return closestIndex;
+		} finally {
+			arrayReadLock.unlock();
+		}
+	}
+	
+	private long closestBinarySearch(long low, long high, long timestamp) throws IOException {    		
+        long mid;
+        long sum = low + high;
+        if (sum < 0) { // overflow
+        	BigInteger bigSum = BigInteger.valueOf(low);
+        	bigSum = bigSum.add(BigInteger.valueOf(high));
+        	mid = bigSum.shiftRight(1).longValue();
+        } else {
+        	mid = sum / 2;
+        }
+        
+    	long midTimestamp = this.getTimestamp(mid);
+    	
+    	if (midTimestamp < timestamp) {
+    		long nextLow = mid + 1;
+    		if (nextLow >= high) {
+    			return high;
+    		}
+    		return closestBinarySearch(nextLow, high, timestamp);
+    	} else if (midTimestamp > timestamp) {
+    		long nextHigh = mid - 1;
+    		if (nextHigh <= low) {
+    			return low;
+    		}
+    		return closestBinarySearch(low, nextHigh, timestamp);
+    	} else {
+    		return mid;
+    	}
+	}
+
+	@Override
+	public long getBackFileSize() throws IOException {
+		try {
+			arrayReadLock.lock();
+			
+			return this._getBackFileSize();
+			
+		} finally {
+			arrayReadLock.unlock();
+		}
+	}
+
+	@Override
+	public void limitBackFileSize(long sizeLimit) throws IOException {
+		if (sizeLimit < INDEX_PAGE_SIZE + DATA_PAGE_SIZE) {
+			return; // ignore, one index page + one data page are minimum for big array to work correctly
+		}
+		
+		long backFileSize = this.getBackFileSize();
+		if (backFileSize <= sizeLimit) return; // nothing to do
+		
+		long toTruncateSize = backFileSize - sizeLimit;
+		if (toTruncateSize < DATA_PAGE_SIZE) {
+			return; // can't do anything
+		}
+		
+		try {
+			arrayWriteLock.lock();
+		
+			// double check
+			backFileSize = this._getBackFileSize();
+			if (backFileSize <= sizeLimit) return; // nothing to do
+			
+			toTruncateSize = backFileSize - sizeLimit;
+			if (toTruncateSize < DATA_PAGE_SIZE) {
+				return; // can't do anything
+			}
+			
+			long tailIndex = this.arrayTailIndex.get();
+			long headIndex = this.arrayHeadIndex.get();
+			long totalLength = 0L;
+			while(true) {
+				if (tailIndex == headIndex) break;
+				totalLength += this.getDataItemLength(tailIndex);
+				if (totalLength > toTruncateSize) break;
+				
+				if (tailIndex == Long.MAX_VALUE) {
+					tailIndex = 0;
+				} else {
+					tailIndex++;
+				}
+				if (Calculator.mod(tailIndex, INDEX_ITEMS_PER_PAGE_BITS) == 0) { // take index page into account
+					totalLength += INDEX_PAGE_SIZE;
+				}
+			}
+			this.removeBeforeIndex(tailIndex);
+		} finally {
+			arrayWriteLock.unlock();
+		}
+		
+	}
+
+	@Override
+	public int getItemLength(long index) throws IOException {
+		try {
+			arrayReadLock.lock();
+			validateIndex(index);
+			
+			return getDataItemLength(index);
+
+		} finally {
+			arrayReadLock.unlock();
+		}
+	}
+	
+	private int getDataItemLength(long index) throws IOException {
+		
+		ByteBuffer indexItemBuffer = this.getIndexItemBuffer(index);
+		// position to the data item length
+		int position = indexItemBuffer.position();
+		indexItemBuffer.position(position + INDEX_ITEM_DATA_ITEM_LENGTH_OFFSET);
+		int length = indexItemBuffer.getInt();
+		return length;
+	}
+	
+	// inner getBackFileSize
+	private long _getBackFileSize() throws IOException {	
+		return this.indexPageFactory.getBackPageFileSize() + this.dataPageFactory.getBackPageFileSize();
 	}
 }

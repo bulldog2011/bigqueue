@@ -27,6 +27,34 @@ public class MappedPageFactoryTest {
 	private IMappedPageFactory mappedPageFactory;
 	private String testDir = TestUtil.TEST_BASE_DIR + "bigqueue/unit/mapped_page_factory_test";
 	
+	
+	@Test 
+	public void testGetBackPageFileSet() throws IOException {
+		mappedPageFactory = new MappedPageFactoryImpl(1024, testDir + "/test_get_backpage_fileset", 2 * 1000);
+		
+		for(int i = 0; i < 10; i++ ) {
+			mappedPageFactory.acquirePage(i);
+		}
+		
+		Set<String> fileSet = mappedPageFactory.getBackPageFileSet();
+		assertTrue(fileSet.size() == 10);
+		for(int i = 0; i < 10; i++ ) {
+			assertTrue(fileSet.contains(MappedPageFactoryImpl.PAGE_FILE_NAME + "-" + i + MappedPageFactoryImpl.PAGE_FILE_SUFFIX));
+		}
+	}
+	
+	@Test
+	public void testGetBackPageFileSize() throws IOException {
+		mappedPageFactory = new MappedPageFactoryImpl(1024 * 1024, testDir + "/test_get_backpage_filesize", 2 * 1000);
+		
+		for(int i = 0; i < 100; i++ ) {
+			mappedPageFactory.acquirePage(i);
+		}
+		
+		assertTrue(1024 * 1024 * 100 == mappedPageFactory.getBackPageFileSize());
+	}
+	
+	
 	@Test
 	public void testSingleThread() throws IOException {
 	
