@@ -23,8 +23,8 @@ Suppose the average message size is 1KB, then big queue can concurrently produci
 [here is a detailed performance report](https://github.com/bulldog2011/bigqueue/wiki/Performance-Test-Report)
 
 ##How to Use
-1. Direct jar reference  
-Download jar from repository mentioned in version history section below.
+1. Direct jar or source reference  
+Download jar from repository mentioned in version history section below, latest stable release is [0.6.1](https://github.com/bulldog2011/bulldog-repo/tree/master/repo/releases/com/leansoft/bigqueue/0.6.1).
 
 2. Maven refereence  
 
@@ -49,11 +49,11 @@ Download jar from repository mentioned in version history section below.
 
 ## Version History
 
-### 0.7.0 - *TBD*
+#### 0.7.0 - *TBD*
   * Enhancement: make data file size configurable
   * Enhancement: enhance IBigArray interface for more metadata information
 
-### 0.6.1 — *January 29, 2013* : [repository](https://github.com/bulldog2011/bulldog-repo/tree/master/repo/releases/com/leansoft/bigqueue/0.6.1)
+#### 0.6.1 — *January 29, 2013* : [repository](https://github.com/bulldog2011/bulldog-repo/tree/master/repo/releases/com/leansoft/bigqueue/0.6.1)
 
   * Initial version:)
 
