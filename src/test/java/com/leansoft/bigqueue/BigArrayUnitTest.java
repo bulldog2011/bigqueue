@@ -225,7 +225,7 @@ public class BigArrayUnitTest {
 	    bigArray = new BigArrayImpl(testDir, "get_closest_index_test");
 		assertNotNull(bigArray);
 		
-		assertTrue(IBigArray.NOT_FOUND == bigArray.getClosestIndex(System.currentTimeMillis()));
+		assertTrue(IBigArray.NOT_FOUND == bigArray.findClosestIndex(System.currentTimeMillis()));
 		
 		int loop = 2000000;
 		long begin = System.currentTimeMillis();
@@ -238,10 +238,10 @@ public class BigArrayUnitTest {
 		
 		long midTs = (end + begin) / 2;
 		
-		assertTrue(0L == bigArray.getClosestIndex(begin));
-		assertTrue(loop - 1 == bigArray.getClosestIndex(end));
+		assertTrue(0L == bigArray.findClosestIndex(begin));
+		assertTrue(loop - 1 == bigArray.findClosestIndex(end));
 
-		long midIndex = bigArray.getClosestIndex(midTs);
+		long midIndex = bigArray.findClosestIndex(midTs);
 		assertTrue(0L < midIndex);
 		assertTrue(loop -1 > midIndex);
 		

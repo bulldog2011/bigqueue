@@ -233,7 +233,7 @@ public class BigArrayImpl implements IBigArray {
 				} else {
 					nextIndexPageIndex++;
 				}
-				long toRemoveBeforeIndex = Calculator.mul(nextIndexPageIndex, INDEX_ITEMS_PER_PAGE_BITS) - 1L;
+				long toRemoveBeforeIndex = Calculator.mul(nextIndexPageIndex, INDEX_ITEMS_PER_PAGE_BITS);
 				removeBeforeIndex(toRemoveBeforeIndex);
 			}
 		} catch (IndexOutOfBoundsException ex) {
@@ -542,7 +542,7 @@ public class BigArrayImpl implements IBigArray {
 	}
 
 	@Override
-	public long getClosestIndex(long timestamp) throws IOException {
+	public long findClosestIndex(long timestamp) throws IOException {
 		try {
 			arrayReadLock.lock();
 			long closestIndex = NOT_FOUND;
