@@ -336,11 +336,11 @@ public class BigArrayUnitTest {
 		bigArray = new BigArrayImpl(testDir, "get_data_length_test");
 		assertNotNull(bigArray);
 		
-		for(int i = 1; i <= 1000; i++) {
+		for(int i = 1; i <= 100; i++) {
 			bigArray.append(TestUtil.randomString(i).getBytes());
 		}
 		
-		for(int i = 1; i <= 1000; i++) {
+		for(int i = 1; i <= 100; i++) {
 			int length = bigArray.getItemLength(i - 1);
 			assertTrue(length == i);
 		}
@@ -349,7 +349,7 @@ public class BigArrayUnitTest {
 	@Test
 	public void testInvalidDataPageSize() throws IOException {
 		try {
-			bigArray = new BigArrayImpl(testDir, "get_data_length_test", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE - 1);
+			bigArray = new BigArrayImpl(testDir, "invalid_data_page_size", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE - 1);
 			fail("should throw invalid page size exception");
 		} catch (IllegalArgumentException iae) {
 			// ecpected
@@ -358,7 +358,7 @@ public class BigArrayUnitTest {
 	
 	@Test
 	public void testMinimumDataPageSize() throws IOException {
-		bigArray = new BigArrayImpl(testDir, "get_data_length_test", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE);
+		bigArray = new BigArrayImpl(testDir, "min_data_page_size", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE);
 		
 		String randomString = TestUtil.randomString(BigArrayImpl.MINIMUM_DATA_PAGE_SIZE / (1024 * 1024));
 		

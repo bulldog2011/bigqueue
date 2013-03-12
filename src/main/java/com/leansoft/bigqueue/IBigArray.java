@@ -11,7 +11,7 @@ import java.io.IOException;
  */
 public interface IBigArray extends Closeable {
 	
-	public static final long NOT_FOUND = 1;
+	public static final long NOT_FOUND = -1;
 	
 	/**
 	 * Append the data into the head of the array

@@ -12,12 +12,28 @@ import java.io.IOException;
 public interface IFanOutQueue extends Closeable {
 	
 	/**
-	 * Determines whether a fanout queue is empty
-	 * 
-	 * @param fid the fanout identifier
-	 * @return true if empty, flase otherwise
+	 * Constant represents earliest timestamp
 	 */
-	public boolean isEmpty(String fid) throws IOException;
+	public static final long EARLIEST = -2;
+	/**
+	 * Constant represents latest timestamp
+	 */
+	public static final long LATEST = -1;
+	
+	/**
+	 * Determines whether a fan out queue is empty
+	 * 
+	 * @param fanoutId the fanout identifier
+	 * @return true if empty, false otherwise
+	 */
+	public boolean isEmpty(String fanoutId) throws IOException;
+	
+	/**
+	 * Determines whether the queue is empty
+	 * 
+	 * @return true if empty, false otherwise
+	 */
+	public boolean isEmpty();
 	
 	/**
 	 * Adds an item at the back of the queue
@@ -28,49 +44,85 @@ public interface IFanOutQueue extends Closeable {
 	public void enqueue(byte[] data)  throws IOException;
 	
 	/**
-	 * Retrieves and removes the front of a queue
+	 * Retrieves and removes the front of a fan out queue
 	 * 
-	 * @param fid the fanout identifier
+	 * @param fanoutId the fanout identifier
 	 * @return data at the front of a queue
 	 * @throws IOException exception throws if there is any IO error during dequeue operation.
 	 */
-	public byte[] dequeue(String fid) throws IOException;
+	public byte[] dequeue(String fanoutId) throws IOException;
 	
 	/**
-	 * Peek the item at the front of a queue, without removing it from the queue
+	 * Peek the item at the front of a fanout queue, without removing it from the queue
 	 * 
-	 * @param fid the fanout identifier
+	 * @param fanoutId the fanout identifier
 	 * @return data at the front of a queue
 	 * @throws IOException exception throws if there is any IO error during peek operation.
 	 */
-	public byte[] peek(String fid)  throws IOException;
+	public byte[] peek(String fanoutId)  throws IOException;
 	
 	
 	/**
-	 * Peek the length of the item at the front of a queue
+	 * Peek the length of the item at the front of a fan out queue
 	 * 
-	 * @param fid the fanout identifier
+	 * @param fanoutId the fanout identifier
 	 * @return data at the front of a queue
 	 * @throws IOException exception throws if there is any IO error during peek operation.
 	 */
-	public int peekLength(String fid) throws IOException;
+	public int peekLength(String fanoutId) throws IOException;
 	
 	/**
-	 * Peek the timestamp of the item at the front of a queue
+	 * Peek the timestamp of the item at the front of a fan out queue
 	 * 
-	 * @param fid the fanout identifier
+	 * @param fanoutId the fanout identifier
 	 * @return data at the front of a queue
 	 * @throws IOException exception throws if there is any IO error during peek operation.
 	 */
-	public long peekTimestamp(String fid) throws IOException;
+	public long peekTimestamp(String fanoutId) throws IOException;
 	
 	/**
-	 * Total number of items remaining in the queue
+	 * Retrieves data item at the specific index of the queue
 	 * 
-	 * @param fid the fanout identifier
+	 * @param index data item index
+	 * @return data at index
+	 * @throws IOException exception throws if there is any IO error during fetch operation.
+	 */
+	public byte[] get(long index) throws IOException;
+	
+	
+	/**
+	 * Get length of data item at specific index of the queue
+	 * 
+	 * @param index data item index
+	 * @return length of data item
+	 * @throws IOException exception throws if there is any IO error during fetch operation.
+	 */
+	public int getLength(long index) throws IOException;
+	
+	/**
+	 * Get timestamp of data item at specific index of the queue, this is the timestamp when corresponding item was appended into the queue.
+	 * 
+	 * @param index data item index
+	 * @return timestamp of data item
+	 * @throws IOException exception throws if there is any IO error during fetch operation.
+	 */
+	public long getTimestamp(long index) throws IOException;
+	
+	/**
+	 * Total number of items remaining in the fan out queue
+	 * 
+	 * @param fanoutId the fanout identifier
 	 * @return total number
 	 */
-	public long size(String fid) throws IOException ;
+	public long size(String fanoutId) throws IOException ;
+	
+	
+	/**
+	 * Total number of items remaining in the queue.
+	 *  
+	 * @return total number
+	 */
+	public long size();
 	
 	/**
 	 * Force to persist current state of the queue, 
@@ -112,6 +164,8 @@ public interface IFanOutQueue extends Closeable {
 	
     /**
      * Find an index closest to the specific timestamp when the corresponding item was enqueued.
+     * to find latest index, use {@link #LATEST} as timestamp.
+     * to find earliest index, use {@link #EARLIEST} as timestamp. 
      * 
      * @param timestamp when the corresponding item was appended
      * @return an index
@@ -120,13 +174,13 @@ public interface IFanOutQueue extends Closeable {
     long findClosestIndex(long timestamp) throws IOException;
     
     /**
-     * Reset the front index of specific fanout queue.
+     * Reset the front index of a fanout queue.
      * 
-     * @param fid fanout identifier
+     * @param fandoutId fanout identifier
      * @param index target index
      * @throws IOException exception thrown during the operation
      */
-    void resetQueueFrontIndex(String fid, long index) throws IOException;
+    void resetQueueFrontIndex(String fanoutId, long index) throws IOException;
     
 	/**
 	 * Removes all items of a queue, this will empty the queue and delete all back data files.

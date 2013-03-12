@@ -25,6 +25,7 @@ import com.leansoft.bigqueue.utils.FolderNameValidator;
  * 5. BIG(HUGE) - the total size of the queued data is only limited by the available disk space.
  * 6. FANOUT - support fan out semantics, multiple consumers can independently consume a single queue without intervention, 
  *                     everyone has its own queue front index.
+ * 7. CLIENT MANAGED INDEX - support access by index and the queue index is managed at client side.
  * 
  * @author bulldog
  *
@@ -70,11 +71,11 @@ public class FanOutQueueImpl implements IFanOutQueue {
 		this(queueDir, queueName, BigArrayImpl.DEFAULT_DATA_PAGE_SIZE);
 	}
 	
-	private QueueFront getQueueFront(String fid) throws IOException {
-		QueueFront qf = this.queueFrontMap.get(fid);
+	private QueueFront getQueueFront(String fanoutId) throws IOException {
+		QueueFront qf = this.queueFrontMap.get(fanoutId);
 		if (qf == null) { // not in cache, need to create one
-			qf = new QueueFront(fid);
-			QueueFront found = this.queueFrontMap.putIfAbsent(fid, qf);
+			qf = new QueueFront(fanoutId);
+			QueueFront found = this.queueFrontMap.putIfAbsent(fanoutId, qf);
 			if (found != null) {
 				qf.indexPageFactory.releaseCachedPages();
 				qf = found;
@@ -85,9 +86,21 @@ public class FanOutQueueImpl implements IFanOutQueue {
 	}
 
 	@Override
-	public boolean isEmpty(String fid) throws IOException {
-		QueueFront qf = this.getQueueFront(fid);
-		return qf.index.get() == innerArray.getHeadIndex();
+	public boolean isEmpty(String fanoutId) throws IOException {
+		try {
+			this.innerArray.arrayReadLock.lock();
+			
+			QueueFront qf = this.getQueueFront(fanoutId);
+			return qf.index.get() == innerArray.getHeadIndex();
+		
+		} finally {
+			this.innerArray.arrayReadLock.unlock();
+		}
+	}
+	
+	@Override
+	public boolean isEmpty() {
+		return this.innerArray.isEmpty();
 	}
 
 	@Override
@@ -96,76 +109,143 @@ public class FanOutQueueImpl implements IFanOutQueue {
 	}
 
 	@Override
-	public byte[] dequeue(String fid) throws IOException {
-		QueueFront qf = this.getQueueFront(fid);
-		if (qf.index.get() == innerArray.getHeadIndex()) {
-			return null; // empty
-		}
+	public byte[] dequeue(String fanoutId) throws IOException {
 		try {
-			qf.writeLock.lock();
-			
-			byte[] data = innerArray.get(qf.index.get());
-			qf.incrementIndex();
-			
-			return data;
-		} catch (IndexOutOfBoundsException ex) {
-			qf.resetIndex(); // maybe the back array has been truncated to limit size
-			
-			byte[] data = innerArray.get(qf.index.get());
-			qf.incrementIndex();
-			
-			return data;
+			this.innerArray.arrayReadLock.lock();
+		
+			QueueFront qf = this.getQueueFront(fanoutId);
+			try {
+				qf.writeLock.lock();
+				
+				if (qf.index.get() == innerArray.arrayHeadIndex.get()) {
+					return null; // empty
+				}
+				
+				byte[] data = innerArray.get(qf.index.get());
+				qf.incrementIndex();
+				
+				return data;
+			} catch (IndexOutOfBoundsException ex) {
+				ex.printStackTrace();
+				qf.resetIndex(); // maybe the back array has been truncated to limit size
+				
+				byte[] data = innerArray.get(qf.index.get());
+				qf.incrementIndex();
+				
+				return data;
+				
+			} finally {
+				qf.writeLock.unlock();
+			}
 			
 		} finally {
-			qf.writeLock.unlock();
+			this.innerArray.arrayReadLock.unlock();
 		}
-		
 	}
 
 	@Override
-	public byte[] peek(String fid) throws IOException {
-		QueueFront qf = this.getQueueFront(fid);
-		if (qf.index.get() == innerArray.getHeadIndex()) {
-			return null; // empty
-		}
+	public byte[] peek(String fanoutId) throws IOException {
+		try {
+			this.innerArray.arrayReadLock.lock();
 		
-		return innerArray.get(qf.index.get());
+			QueueFront qf = this.getQueueFront(fanoutId);
+			if (qf.index.get() == innerArray.getHeadIndex()) {
+				return null; // empty
+			}
+			
+			return innerArray.get(qf.index.get());
+		
+		} finally {
+			this.innerArray.arrayReadLock.unlock();
+		}
 	}
 
 	@Override
-	public int peekLength(String fid) throws IOException {
-		QueueFront qf = this.getQueueFront(fid);
-		if (qf.index.get() == innerArray.getHeadIndex()) {
-			return -1; // empty
+	public int peekLength(String fanoutId) throws IOException {
+		try {
+			this.innerArray.arrayReadLock.lock();
+		
+			QueueFront qf = this.getQueueFront(fanoutId);
+			if (qf.index.get() == innerArray.getHeadIndex()) {
+				return -1; // empty
+			}
+			return innerArray.getItemLength(qf.index.get());
+		
+		} finally {
+			this.innerArray.arrayReadLock.unlock();
 		}
-		return innerArray.getItemLength(qf.index.get());
 	}
 	
 	@Override
-	public long peekTimestamp(String fid) throws IOException {
-		QueueFront qf = this.getQueueFront(fid);
-		if (qf.index.get() == innerArray.getHeadIndex()) {
-			return -1; // empty
+	public long peekTimestamp(String fanoutId) throws IOException {
+		try {
+			this.innerArray.arrayReadLock.lock();
+			
+			QueueFront qf = this.getQueueFront(fanoutId);
+			if (qf.index.get() == innerArray.getHeadIndex()) {
+				return -1; // empty
+			}
+			return innerArray.getTimestamp(qf.index.get());
+		
+		} finally {
+			this.innerArray.arrayReadLock.unlock();
 		}
-		return innerArray.getTimestamp(qf.index.get());
+	}
+	
+
+	@Override
+	public byte[] get(long index) throws IOException {
+		return this.innerArray.get(index);
+	}
+
+	@Override
+	public int getLength(long index) throws IOException {
+		return this.innerArray.getItemLength(index);
+	}
+
+	@Override
+	public long getTimestamp(long index) throws IOException {
+		return this.innerArray.getTimestamp(index);
 	}
 
 	@Override
 	public void removeBefore(long timestamp) throws IOException {
-		this.innerArray.removeBefore(timestamp);
-		for(QueueFront qf : this.queueFrontMap.values()) {
-			try {
-				qf.writeLock.lock();
-				qf.validateAndAdjustIndex();	
-			} finally {
-				qf.writeLock.unlock();
+		try {
+			this.innerArray.arrayWriteLock.lock();
+			
+			this.innerArray.removeBefore(timestamp);
+			for(QueueFront qf : this.queueFrontMap.values()) {
+				try {
+					qf.writeLock.lock();
+					qf.validateAndAdjustIndex();	
+				} finally {
+					qf.writeLock.unlock();
+				}
 			}
+		} finally {
+			this.innerArray.arrayWriteLock.unlock();
 		}
 	}
 
 	@Override
 	public void limitBackFileSize(long sizeLimit) throws IOException {
-		this.innerArray.limitBackFileSize(sizeLimit);
+		try {
+			this.innerArray.arrayWriteLock.lock();
+			
+			this.innerArray.limitBackFileSize(sizeLimit);
+			
+			for(QueueFront qf : this.queueFrontMap.values()) {
+				try {
+					qf.writeLock.lock();
+					qf.validateAndAdjustIndex();	
+				} finally {
+					qf.writeLock.unlock();
+				}
+			}
+		
+		} finally {
+			this.innerArray.arrayWriteLock.unlock();
+		}
 	}
 
 	@Override
@@ -175,81 +255,133 @@ public class FanOutQueueImpl implements IFanOutQueue {
 
 	@Override
 	public long findClosestIndex(long timestamp) throws IOException {
-		return this.innerArray.findClosestIndex(timestamp);
+		try {
+			this.innerArray.arrayReadLock.lock();
+			
+			if (timestamp == LATEST) {
+				return this.innerArray.getHeadIndex();
+			}
+			if (timestamp == EARLIEST) {
+				return this.innerArray.getTailIndex();
+			}
+			return this.innerArray.findClosestIndex(timestamp);
+		
+		} finally {
+			this.innerArray.arrayReadLock.unlock();
+		}
 	}
 
 	@Override
-	public void resetQueueFrontIndex(String fid, long index) throws IOException {
-		QueueFront qf = this.getQueueFront(fid);
-		
-		if (index != this.innerArray.getHeadIndex()) { // ok to set index to array head index
-			this.innerArray.validateIndex(index);
-		}
-		
+	public void resetQueueFrontIndex(String fanoutId, long index) throws IOException {
 		try {
-			qf.writeLock.lock();
+			this.innerArray.arrayReadLock.lock();
+		
+			QueueFront qf = this.getQueueFront(fanoutId);
 			
-			qf.index.set(index);
-			qf.persistIndex();
+			try {
+				qf.writeLock.lock();
+				
+				if (index != this.innerArray.getHeadIndex()) { // ok to set index to array head index
+					this.innerArray.validateIndex(index);
+				}
+				
+				qf.index.set(index);
+				qf.persistIndex();
+				
+			} finally {
+				qf.writeLock.unlock();
+			}
+		
+		} finally {
+			this.innerArray.arrayReadLock.unlock();
+		}
+	}
+
+	@Override
+	public long size(String fanoutId) throws IOException {
+		try {
+			this.innerArray.arrayReadLock.lock();
+			
+			QueueFront qf = this.getQueueFront(fanoutId);
+			long qFront = qf.index.get();
+			long qRear = innerArray.getHeadIndex();
+			if (qFront <= qRear) {
+				return (qRear - qFront);
+			} else {
+				return Long.MAX_VALUE - qFront + 1 + qRear;
+			}
 			
 		} finally {
-			qf.writeLock.unlock();
+			this.innerArray.arrayReadLock.unlock();
 		}
 	}
-
+	
 	@Override
-	public long size(String fid) throws IOException {
-		QueueFront qf = this.getQueueFront(fid);
-		long qFront = qf.index.get();
-		long qRear = innerArray.getHeadIndex();
-		if (qFront <= qRear) {
-			return (qRear - qFront);
-		} else {
-			return Long.MAX_VALUE - qFront + 1 + qRear;
-		}
+	public long size() {
+		return this.innerArray.size();
 	}
 	
 	@Override
 	public void flush() {
-		for(QueueFront qf : this.queueFrontMap.values()) {
-			try {
-				qf.writeLock.lock();
-				qf.indexPageFactory.flush();		
-			} finally {
-				qf.writeLock.unlock();
+		try {
+			this.innerArray.arrayReadLock.lock();
+			
+			for(QueueFront qf : this.queueFrontMap.values()) {
+				try {
+					qf.writeLock.lock();
+					qf.indexPageFactory.flush();		
+				} finally {
+					qf.writeLock.unlock();
+				}
 			}
+			innerArray.flush();
+			
+		} finally {
+			this.innerArray.arrayReadLock.unlock();
 		}
-		innerArray.flush();
 	}
 
 	@Override
 	public void close() throws IOException {
-		for(QueueFront qf : this.queueFrontMap.values()) {
-			qf.indexPageFactory.releaseCachedPages();
+		try {
+			this.innerArray.arrayWriteLock.lock();
+			
+			for(QueueFront qf : this.queueFrontMap.values()) {
+				qf.indexPageFactory.releaseCachedPages();
+			}
+			
+			innerArray.close();
+		} finally {
+			this.innerArray.arrayWriteLock.unlock();
 		}
-		
-		innerArray.close();
 	}
 	
 	@Override
 	public void removeAll() throws IOException {
-		for(QueueFront qf : this.queueFrontMap.values()) {
-			try {
-				qf.writeLock.lock();
-				qf.index.set(0L);
-				qf.persistIndex();
-			} finally {
-				qf.writeLock.unlock();
+		try {
+			this.innerArray.arrayWriteLock.lock();
+			
+			for(QueueFront qf : this.queueFrontMap.values()) {
+				try {
+					qf.writeLock.lock();
+					qf.index.set(0L);
+					qf.persistIndex();
+				} finally {
+					qf.writeLock.unlock();
+				}
 			}
+			innerArray.removeAll();
+		
+		} finally {
+			this.innerArray.arrayWriteLock.unlock();
 		}
-		innerArray.removeAll();
 	}
 	
 	// Queue front wrapper
 	class QueueFront {
 		
 		// fanout index
-		final String fanoutIdentifier;
+		final String fanoutId;
 		
 		// front index of the fanout queue
 		final AtomicLong index = new AtomicLong();
@@ -260,16 +392,16 @@ public class FanOutQueueImpl implements IFanOutQueue {
 		// lock for queue front write management
 		final Lock writeLock = new ReentrantLock();
 		
-		QueueFront(String fid) throws IOException {
+		QueueFront(String fanoutId) throws IOException {
 			try {
-				FolderNameValidator.validate(fid);
+				FolderNameValidator.validate(fanoutId);
 			} catch (IllegalArgumentException ex) {
 				throw new IllegalArgumentException("invalid fanout identifier", ex);
 			}
-			this.fanoutIdentifier = fid;
+			this.fanoutId = fanoutId;
 			// the ttl does not matter here since queue front index page is always cached
 			this.indexPageFactory = new MappedPageFactoryImpl(QUEUE_FRONT_INDEX_PAGE_SIZE, 
-					innerArray.arrayDirectory + QUEUE_FRONT_INDEX_PAGE_FOLDER_PREFIX + fid, 
+					innerArray.arrayDirectory + QUEUE_FRONT_INDEX_PAGE_FOLDER_PREFIX + fanoutId, 
 					10 * 1000/*does not matter*/);
 			
 			IMappedPage indexPage = this.indexPageFactory.acquirePage(QUEUE_FRONT_PAGE_INDEX);
@@ -280,7 +412,7 @@ public class FanOutQueueImpl implements IFanOutQueue {
 		}
 		
 		void validateAndAdjustIndex() throws IOException {
-			if (index.get() != innerArray.getHeadIndex()) { // ok that index is equal to array head index
+			if (index.get() != innerArray.arrayHeadIndex.get()) { // ok that index is equal to array head index
 				try {
 					innerArray.validateIndex(index.get());
 				} catch (IndexOutOfBoundsException ex) { // maybe the back array has been truncated to limit size
