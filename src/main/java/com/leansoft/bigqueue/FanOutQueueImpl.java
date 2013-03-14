@@ -71,7 +71,7 @@ public class FanOutQueueImpl implements IFanOutQueue {
 		this(queueDir, queueName, BigArrayImpl.DEFAULT_DATA_PAGE_SIZE);
 	}
 	
-	private QueueFront getQueueFront(String fanoutId) throws IOException {
+	QueueFront getQueueFront(String fanoutId) throws IOException {
 		QueueFront qf = this.queueFrontMap.get(fanoutId);
 		if (qf == null) { // not in cache, need to create one
 			qf = new QueueFront(fanoutId);
