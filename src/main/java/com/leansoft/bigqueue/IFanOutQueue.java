@@ -14,11 +14,11 @@ public interface IFanOutQueue extends Closeable {
 	/**
 	 * Constant represents earliest timestamp
 	 */
-	public static final long EARLIEST = -2;
+	public static final long EARLIEST = -1;
 	/**
 	 * Constant represents latest timestamp
 	 */
-	public static final long LATEST = -1;
+	public static final long LATEST = -2;
 	
 	/**
 	 * Determines whether a fan out queue is empty
@@ -39,9 +39,10 @@ public interface IFanOutQueue extends Closeable {
 	 * Adds an item at the back of the queue
 	 * 
 	 * @param data to be enqueued data
+	 * @return index where the item was appended
 	 * @throws IOException exception throws if there is any IO error during enqueue operation.
 	 */
-	public void enqueue(byte[] data)  throws IOException;
+	public long enqueue(byte[] data)  throws IOException;
 	
 	/**
 	 * Retrieves and removes the front of a fan out queue
@@ -188,5 +189,27 @@ public interface IFanOutQueue extends Closeable {
 	 * @throws IOException exception throws if there is any IO error during dequeue operation.
 	 */
 	public void removeAll() throws IOException;
+	
+	/**
+	 * Get the queue front index, this is the earliest appended index
+	 * 
+	 * @return an index
+	 */
+	public long getFrontIndex();
+	
+	/**
+	 * Get front index of specific fanout queue
+	 * 
+	 * @param fanoutId fanout identifier
+	 * @return an index
+	 */
+	public long getFrontIndex(String fanoutId) throws IOException;
+	
+	/**
+	 * Get the queue rear index, this is the next to be appended index
+	 * 
+	 * @return an index
+	 */
+	public long getRearIndex();
 
 }

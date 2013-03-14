@@ -104,8 +104,8 @@ public class FanOutQueueImpl implements IFanOutQueue {
 	}
 
 	@Override
-	public void enqueue(byte[] data) throws IOException {
-		innerArray.append(data);
+	public long enqueue(byte[] data) throws IOException {
+		return innerArray.append(data);
 	}
 
 	@Override
@@ -446,6 +446,29 @@ public class FanOutQueueImpl implements IFanOutQueue {
 			ByteBuffer indexBuffer = indexPage.getLocal(0);
 			indexBuffer.putLong(index.get());
 			indexPage.setDirty(true);
+		}
+	}
+
+	@Override
+	public long getFrontIndex() {
+		return this.innerArray.getTailIndex();
+	}
+
+	@Override
+	public long getRearIndex() {
+		return this.innerArray.getHeadIndex();
+	}
+
+	@Override
+	public long getFrontIndex(String fanoutId) throws IOException {
+		try {
+			this.innerArray.arrayReadLock.lock();
+		
+			QueueFront qf = this.getQueueFront(fanoutId);
+			return qf.index.get();
+		
+		} finally {
+			this.innerArray.arrayReadLock.unlock();
 		}
 	}
 }
