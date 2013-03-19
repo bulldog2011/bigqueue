@@ -227,13 +227,13 @@ public class BigArrayImpl implements IBigArray {
 			arrayWriteLock.lock();
 			long firstIndexPageIndex = this.indexPageFactory.getFirstPageIndexBefore(timestamp);
 			if (firstIndexPageIndex >= 0) {
-				long nextIndexPageIndex = firstIndexPageIndex;
-				if (nextIndexPageIndex == Long.MAX_VALUE) { //wrap
-					nextIndexPageIndex = 0L;
-				} else {
-					nextIndexPageIndex++;
-				}
-				long toRemoveBeforeIndex = Calculator.mul(nextIndexPageIndex, INDEX_ITEMS_PER_PAGE_BITS);
+//				long nextIndexPageIndex = firstIndexPageIndex;
+//				if (nextIndexPageIndex == Long.MAX_VALUE) { //wrap
+//					nextIndexPageIndex = 0L;
+//				} else {
+//					nextIndexPageIndex++;
+//				}
+				long toRemoveBeforeIndex = Calculator.mul(firstIndexPageIndex, INDEX_ITEMS_PER_PAGE_BITS);
 				removeBeforeIndex(toRemoveBeforeIndex);
 			}
 		} catch (IndexOutOfBoundsException ex) {
