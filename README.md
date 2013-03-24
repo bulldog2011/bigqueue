@@ -24,13 +24,14 @@ Suppose the average message size is 1KB, then big queue can concurrently produci
 
 ##How to Use
 1. Direct jar or source reference  
-Download jar from repository mentioned in version history section below, latest stable release is [0.6.1](https://github.com/bulldog2011/bulldog-repo/tree/master/repo/releases/com/leansoft/bigqueue/0.6.1).
+Download jar from repository mentioned in version history section below, latest stable release is [0.7.0](https://github.com/bulldog2011/bulldog-repo/tree/master/repo/releases/com/leansoft/bigqueue/0.7.0).
 
-2. Maven refereence  
+2. Maven reference  
 
 		<dependency>
 		  <groupId>com.leansoft</groupId>
 		  <artifactId>bigqueue</artifactId>
+          <version>0.7.0</version>
 		</dependency>
 		
 		<repository>
@@ -49,9 +50,9 @@ Download jar from repository mentioned in version history section below, latest 
 
 ## Version History
 
-#### 0.7.0 - *TBD*
+#### 0.7.0 - *March 24, 2013* : [repository](https://github.com/bulldog2011/bulldog-repo/tree/master/repo/releases/com/leansoft/bigqueue/0.7.0)
+  * Feature: support fanout queue semantics
   * Enhancement: make data file size configurable
-  * Enhancement: enhance IBigArray interface for more metadata information
 
 #### 0.6.1 — *January 29, 2013* : [repository](https://github.com/bulldog2011/bulldog-repo/tree/master/repo/releases/com/leansoft/bigqueue/0.6.1)
 
