@@ -128,5 +128,21 @@ public interface IMappedPageFactory {
 	 * Persist any changes in cached mapped pages
 	 */
 	void flush();
-
+	
+	/**
+	 * 
+	 * A set of back page file names
+	 * 
+	 * @return file name set
+	 */
+	Set<String> getBackPageFileSet();
+	
+	
+	/**
+	 * Total size of all page files
+	 * 
+	 * @return total size
+	 */
+	long getBackPageFileSize();
+	
 }

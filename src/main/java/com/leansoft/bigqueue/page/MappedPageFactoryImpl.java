@@ -186,9 +186,7 @@ public class MappedPageFactoryImpl implements IMappedPageFactory {
 			}
 		}
 		if (deleted) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Page file " + fileName + " was just deleted.");
-			}
+			logger.info("Page file " + fileName + " was just deleted.");
 		} else {
 			logger.warn("fail to delete file " + fileName + " after max " + maxRound + " rounds of try, you may delete it manually.");
 		}
@@ -300,6 +298,36 @@ public class MappedPageFactoryImpl implements IMappedPageFactory {
 		for(IMappedPage mappedPage : cachedPages) {
 			mappedPage.flush();
 		}
+	}
+
+	@Override
+	public Set<String> getBackPageFileSet() {
+		Set<String> fileSet = new HashSet<String>();
+		File[] pageFiles = this.pageDirFile.listFiles();
+		if (pageFiles != null && pageFiles.length > 0) {
+			for(File pageFile : pageFiles) {
+				String fileName = pageFile.getName();
+				if (fileName.endsWith(PAGE_FILE_SUFFIX)) {
+					fileSet.add(fileName);
+				}
+			}
+		}
+		return fileSet;
+	}
+
+	@Override
+	public long getBackPageFileSize() {
+		long totalSize = 0L;
+		File[] pageFiles = this.pageDirFile.listFiles();
+		if (pageFiles != null && pageFiles.length > 0) {
+			for(File pageFile : pageFiles) {
+				String fileName = pageFile.getName();
+				if (fileName.endsWith(PAGE_FILE_SUFFIX)) {
+					totalSize += pageFile.length();
+				}
+			}
+		}
+		return totalSize;
 	}
 
 }

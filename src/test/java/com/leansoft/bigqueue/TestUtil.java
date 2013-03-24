@@ -23,5 +23,5 @@ public class TestUtil {
 		}
 	}
 	
-	public static final String TEST_BASE_DIR = "e:/bigq_test/";
+	public static final String TEST_BASE_DIR = "d:/bigq_test/";
 }
