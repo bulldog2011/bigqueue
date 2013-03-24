@@ -3,7 +3,7 @@
 
   <groupId>com.leansoft</groupId>
   <artifactId>bigqueue</artifactId>
-  <version>0.7.0-SNAPSHOT</version>
+  <version>0.7.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>bigqueue</name>
@@ -152,7 +152,7 @@
 			  <artifactId>maven-release-plugin</artifactId>
 			  <configuration>
                     <pushChanges>false</pushChanges>
-                    <localCheckout>true</localCheckout>
+                    <localCheckout>false</localCheckout>
               </configuration>
 			</plugin>
         </plugins>
