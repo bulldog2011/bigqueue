@@ -44,10 +44,11 @@ Download jar from repository mentioned in version history section below, latest 
 
 1. [a simple design doc](http://bulldog2011.github.com/blog/2013/01/23/big-queue-design/)
 2. [big queue tutorial](http://bulldog2011.github.com/blog/2013/01/24/big-queue-tutorial/)
-3. [big array tutorial](http://bulldog2011.github.com/blog/2013/01/24/big-array-tutorial/)
-4. [how to turn big queue into a thrift based queue service](http://bulldog2011.github.com/blog/2013/01/27/thrift-queue/)
-5. [use case : producing and consuming 4TB log daily on one commodity machine](http://bulldog2011.github.com/blog/2013/01/28/log-collecting/)
-6. [use case : sort and search 100GB data on a single commodity machine](http://bulldog2011.github.com/blog/2013/01/25/merge-sort-using-big-queue/)
+3. [fanout queue tutorial](http://bulldog2011.github.com/blog/2013/03/25/fanout-queue-tutorial/)
+4. [big array tutorial](http://bulldog2011.github.com/blog/2013/01/24/big-array-tutorial/)
+5. [how to turn big queue into a thrift based queue service](http://bulldog2011.github.com/blog/2013/01/27/thrift-queue/)
+6. [use case : producing and consuming 4TB log daily on one commodity machine](http://bulldog2011.github.com/blog/2013/01/28/log-collecting/)
+7. [use case : sort and search 100GB data on a single commodity machine](http://bulldog2011.github.com/blog/2013/01/25/merge-sort-using-big-queue/)
 
 ## Version History
 
