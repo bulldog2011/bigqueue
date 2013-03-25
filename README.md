@@ -24,7 +24,8 @@ Suppose the average message size is 1KB, then big queue can concurrently produci
 
 ##How to Use
 1. Direct jar or source reference  
-Download jar from repository mentioned in version history section below, latest stable release is [0.7.0](https://github.com/bulldog2011/bulldog-repo/tree/master/repo/releases/com/leansoft/bigqueue/0.7.0).
+Download jar from repository mentioned in version history section below, latest stable release is [0.7.0](https://github.com/bulldog2011/bulldog-repo/tree/master/repo/releases/com/leansoft/bigqueue/0.7.0).   
+***Note*** : bigqueue depends on log4j, please also added log4j jar reference if you use bigqueue.
 
 2. Maven reference  
 

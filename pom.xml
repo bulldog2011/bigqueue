@@ -152,7 +152,7 @@
 			  <artifactId>maven-release-plugin</artifactId>
 			  <configuration>
                     <pushChanges>false</pushChanges>
-                    <localCheckout>true</localCheckout>
+                    <localCheckout>false</localCheckout>
               </configuration>
 			</plugin>
         </plugins>
