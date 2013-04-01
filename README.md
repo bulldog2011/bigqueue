@@ -13,6 +13,14 @@ A big, fast and persistent queue based on memory mapped file.
 7. **Thread-safe**: multiple threads can concurrently enqueue and dequeue without data corruption.  
 8. **Simple&Light-weight**: current number of source files is 12 and the library jar is less than 30K.
 
+
+## The Big Picture
+
+###Memory Mapped Sliding Window
+
+![design](http://bulldog2011.github.com/images/luxun/sliding_window.png)
+
+
 ##Performance Highlight:
 * In concurrent producing and consuming case, the average throughput is around ***166M bytes per second***.
 * In sequential producing then consuming case, the average throughput is around ***333M bytes per second***.
@@ -39,6 +47,7 @@ Download jar from repository mentioned in version history section below, latest 
 		  <id>github.release.repo</id>
 		  <url>https://raw.github.com/bulldog2011/bulldog-repo/master/repo/releases/</url>
 		</repository>
+
 
 ##Docs
 
