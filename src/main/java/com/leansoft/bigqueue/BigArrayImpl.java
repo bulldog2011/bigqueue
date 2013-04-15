@@ -376,16 +376,16 @@ public class BigArrayImpl implements IBigArray {
 		try {
 			arrayReadLock.lock(); 
 			
-			try {
-				appendLock.lock(); // make flush and append mutually exclusive
+//			try {
+//				appendLock.lock(); // make flush and append mutually exclusive
 				
 				this.metaPageFactory.flush();
 				this.indexPageFactory.flush();
 				this.dataPageFactory.flush();
 				
-			} finally {	
-				appendLock.unlock();
-			}
+//			} finally {	
+//				appendLock.unlock();
+//			}
 			
 		} finally {
 			arrayReadLock.unlock();
