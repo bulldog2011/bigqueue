@@ -67,7 +67,13 @@
 </li>
 <li>
 <strong>Simple&amp;Light-weight</strong>: current number of source files is 12 and the library jar is less than 30K.</li>
-</ol><h2>Performance Highlight:</h2>
+</ol><h2>The Big Picture</h2>
+
+<h3>Memory Mapped Sliding Window</h3>
+
+<p><img src="http://bulldog2011.github.com/images/luxun/sliding_window.png" alt="design"></p>
+
+<h2>Performance Highlight:</h2>
 
 <ul>
 <li>In concurrent producing and consuming case, the average throughput is around <strong><em>166M bytes per second</em></strong>.</li>
@@ -107,6 +113,8 @@ Download jar from repository mentioned in version history section below, latest 
 <li><a href="http://bulldog2011.github.com/blog/2013/01/27/thrift-queue/">how to turn big queue into a thrift based queue service</a></li>
 <li><a href="http://bulldog2011.github.com/blog/2013/01/28/log-collecting/">use case : producing and consuming 4TB log daily on one commodity machine</a></li>
 <li><a href="http://bulldog2011.github.com/blog/2013/01/25/merge-sort-using-big-queue/">use case : sort and search 100GB data on a single commodity machine</a></li>
+<li><a href="http://bulldog2011.github.com/blog/2013/03/27/the-architecture-and-design-of-a-pub-sub-messaging-system/">the architecture and design of a pub-sub messaging system tailored for big data collecting and analytics</a></li>
+<li><a href="http://www.slideshare.net/yang75108/a-big-fast-and-persistent-queue">a big, fast and persistent queue[ppt]</a></li>
 </ol><h2>Version History</h2>
 
 <h4>0.7.0 - <em>March 24, 2013</em> : <a href="https://github.com/bulldog2011/bulldog-repo/tree/master/repo/releases/com/leansoft/bigqueue/0.7.0">repository</a>
