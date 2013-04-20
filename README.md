@@ -3,6 +3,8 @@
 
 A big, fast and persistent queue based on memory mapped file.
 
+***Notice***, bigqueue is just a standalone library, for a high-throughput, persistent, distributed, publish-subscrible messaging system, please refer to [Luxun](https://github.com/bulldog2011/luxun), Luxun messaging system uses bigqueue internally as fast and persistent queue. 
+
 ##Feature Highlight:  
 1. **Fast**: close to the speed of direct memory access, both enqueue and dequeue are close to O(1) memory access.  
 2. **Big**: the total size of the queue is only limited by the available disk space.  
