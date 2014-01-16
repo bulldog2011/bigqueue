@@ -120,8 +120,87 @@ public class BigQueueUnitTest {
 		// ok
 		bigQueue = new BigQueueImpl(testDir, "testInvalidDataPageSize", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE);
 	}
-	
-	
+
+
+    @Test
+    public void testApplyForEachDoNotChangeTheQueue() throws Exception {
+        bigQueue = new BigQueueImpl(testDir, "testApplyForEachDoNotChangeTheQueue", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE);
+        bigQueue.enqueue("1".getBytes());
+        bigQueue.enqueue("2".getBytes());
+        bigQueue.enqueue("3".getBytes());
+
+        DefaultItemIterator dii = new DefaultItemIterator();
+        bigQueue.applyForEach(dii);
+        System.out.println("[" + dii.getCount() + "] " + dii.toString());
+
+        assertEquals(3, bigQueue.size());
+        assertEquals(bigQueue.size(), dii.getCount());
+
+        assertArrayEquals("1".getBytes(), bigQueue.dequeue());
+        assertArrayEquals("2".getBytes(), bigQueue.dequeue());
+        assertArrayEquals("3".getBytes(), bigQueue.dequeue());
+
+        assertEquals(0, bigQueue.size());
+    }
+
+    @Test
+    public void concurrentApplyForEachTest() throws Exception {
+        bigQueue = new BigQueueImpl(testDir, "concurrentApplyForEachTest", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE );
+
+        final long N = 100000;
+
+        Thread publisher = new Thread(new Runnable() {
+            private Long item = 1l;
+
+            @Override
+            public void run() {
+                for (long i=0; i<N; i++)
+                    try {
+                        bigQueue.enqueue(item.toString().getBytes());
+                        item++;
+                        Thread.yield();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+            }
+        });
+
+        Thread subscriber = new Thread(new Runnable() {
+            private long item = 0l;
+
+            @Override
+            public void run() {
+                for (long i=0; i<N; i++)
+                    try {
+                        if (bigQueue.size() > 0) {
+                            byte[] bytes = bigQueue.dequeue();
+                            String str = new String(bytes);
+                            long curr = Long.parseLong(str);
+                            assertEquals(item+1, curr);
+                            item = curr;
+                        }
+
+                        Thread.yield();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+            }
+        });
+
+        subscriber.start();
+        publisher.start();
+
+        for (long i=0; i<N; i+=N/100) {
+            DefaultItemIterator dii = new DefaultItemIterator();
+            bigQueue.applyForEach(dii);
+            System.out.println("[" + dii.getCount() + "] " + dii.toString());
+            Thread.sleep(2);
+        }
+
+        publisher.join();
+        subscriber.join();
+    }
+
 	@After
 	public void clean() throws IOException {
 		if (bigQueue != null) {
@@ -129,4 +208,30 @@ public class BigQueueUnitTest {
 		}
 	}
 
+    private class DefaultItemIterator implements IBigQueue.ItemIterator {
+        private long count = 0;
+        private StringBuilder sb = new StringBuilder();
+
+        public void forEach(byte[] item) throws IOException {
+            try {
+                if (count<20) {
+                    sb.append(new String(item));
+                    sb.append(", ");
+
+                }
+                count++;
+            } catch (Exception e) {
+                throw new IOException(e);
+            }
+        }
+
+        public long getCount() {
+            return count;
+        }
+
+        @Override
+        public String toString() {
+            return sb.toString();
+        }
+    }
 }
