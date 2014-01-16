@@ -76,4 +76,11 @@ public interface IBigQueue extends Closeable {
 	 * @return total number
 	 */
 	public long size();
+	
+	/**
+	 * Item iterator interface
+	 */
+	public static interface ItemIterator {
+            public void forEach(byte[] item) throws IOException;
+        }
 }
