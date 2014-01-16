@@ -49,6 +49,8 @@ public interface IBigQueue extends Closeable {
 	 */
 	public byte[] peek()  throws IOException;
 	
+	public void applyForEach(ItemIterator iterator) throws IOException;
+	
 	/**
 	 * Delete all used data files to free disk space.
 	 * 
