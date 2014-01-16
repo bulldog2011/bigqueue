@@ -48,6 +48,14 @@ public interface IBigQueue extends Closeable {
 	 * @throws IOException exception throws if there is any IO error during peek operation.
 	 */
 	public byte[] peek()  throws IOException;
+
+    /**
+     * apply an implementation of a ItemIterator interface for each queue item
+     *
+     * @param iterator
+     * @throws IOException
+     */
+    public void applyForEach(ItemIterator iterator) throws IOException;
 	
 	/**
 	 * Delete all used data files to free disk space.
@@ -76,4 +84,17 @@ public interface IBigQueue extends Closeable {
 	 * @return total number
 	 */
 	public long size();
+	
+	/**
+	 * Item iterator interface
+	 */
+	public static interface ItemIterator {
+        /**
+         * Method to be executed for each queue item
+         *
+         * @param item queue item
+         * @throws IOException
+         */
+        public void forEach(byte[] item) throws IOException;
+    }
 }

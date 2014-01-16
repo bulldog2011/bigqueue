@@ -145,6 +145,29 @@ public class BigQueueImpl implements IBigQueue {
 		return data;
 	}
 
+    /**
+     * apply an implementation of a ItemIterator interface for each queue item
+     *
+     * @param iterator
+     * @throws IOException
+     */
+    @Override
+    public void applyForEach(ItemIterator iterator) throws IOException {
+       try {
+            queueFrontWriteLock.lock();
+            if (this.isEmpty()) {
+                return;
+            }
+
+            long index = this.queueFrontIndex.get();
+            for (long i=index; i<this.innerArray.size(); i++) {
+                iterator.forEach(this.innerArray.get(i));
+            }
+        } finally {
+            queueFrontWriteLock.unlock();
+        }
+    }
+
 	@Override
 	public void close() throws IOException {
 		if (this.queueFrontIndexPageFactory != null) {
