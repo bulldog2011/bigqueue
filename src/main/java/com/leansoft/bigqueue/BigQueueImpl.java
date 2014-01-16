@@ -144,6 +144,23 @@ public class BigQueueImpl implements IBigQueue {
 		byte[] data = this.innerArray.get(this.queueFrontIndex.get());
 		return data;
 	}
+	
+	
+    public void applyForEach(ItemIterator iterator) throws IOException {
+           try {
+                queueFrontWriteLock.lock();
+                if (this.isEmpty()) {
+                    return;
+                }
+
+                long index = this.queueFrontIndex.get();
+                for (long i=index; i<this.innerArray.size(); i++) {
+                    iterator.forEach(this.innerArray.get(i));
+                }
+            } finally {
+                queueFrontWriteLock.unlock();
+            }
+        }	
 
 	@Override
 	public void close() throws IOException {
