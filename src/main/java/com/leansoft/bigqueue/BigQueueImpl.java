@@ -93,7 +93,7 @@ public class BigQueueImpl implements IBigQueue {
     public void enqueue(byte[] data) throws IOException {
         this.innerArray.append(data);
 
-        completeFuture();
+        this.completeFuture();
     }
 
 
@@ -102,9 +102,22 @@ public class BigQueueImpl implements IBigQueue {
      */
     private void completeFuture() {
         futureLock.lock();
-        if (dequeueFuture != null) {
-            dequeueFuture.set(this);
+        this.initializeFutureIfNecessary();
+        dequeueFuture.set(this);
+        futureLock.unlock();
+    }
+
+    private void initializeFutureIfNecessary() {
+        futureLock.lock();
+        if (dequeueFuture == null) {
+            dequeueFuture = SettableFuture.create();
         }
+        futureLock.unlock();
+    }
+
+    private void invalidateFuture() {
+        futureLock.lock();
+        dequeueFuture = null;
         futureLock.unlock();
     }
 
@@ -130,6 +143,11 @@ public class BigQueueImpl implements IBigQueue {
             ByteBuffer queueFrontIndexBuffer = queueFrontIndexPage.getLocal(0);
             queueFrontIndexBuffer.putLong(nextQueueFrontIndex);
             queueFrontIndexPage.setDirty(true);
+
+            if (this.isEmpty()) {
+                this.invalidateFuture();
+            }
+
             return data;
         } finally {
             queueFrontWriteLock.unlock();
@@ -139,11 +157,7 @@ public class BigQueueImpl implements IBigQueue {
 
     @Override
     public ListenableFuture<IBigQueue> queueReadyForDequeue() {
-        futureLock.lock();
-        if (dequeueFuture == null || dequeueFuture.isDone() || dequeueFuture.isCancelled()) {
-            dequeueFuture = SettableFuture.create();
-        }
-        futureLock.unlock();
+        initializeFutureIfNecessary();
         return dequeueFuture;
 
     }
