@@ -1,9 +1,14 @@
 package com.leansoft.bigqueue;
 
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.*;
 
 import java.io.IOException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import org.junit.After;
 import org.junit.Test;
 
@@ -199,6 +204,57 @@ public class BigQueueUnitTest {
 
         publisher.join();
         subscriber.join();
+    }
+
+    @Test
+    public void testIfFutureIsCompletedAtEnqueueAndListenersAreCalled() throws Exception {
+        bigQueue = new BigQueueImpl(testDir, "testIfFutureIsCompletedAtEnqueueAndListenersAreCalled", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE );
+        Executor executor1 = mock(Executor.class);
+        Executor executor2 = mock(Executor.class);
+        ListenableFuture<IBigQueue> future = bigQueue.queueReadyForDequeue();
+        future.addListener(mock(Runnable.class), executor1);
+        future.addListener(mock(Runnable.class), executor2);
+
+        verify(executor1, never()).execute(any(Runnable.class));
+
+        bigQueue.enqueue("test".getBytes());
+        bigQueue.enqueue("test2".getBytes());
+
+        verify(executor1, times(1)).execute(any(Runnable.class));
+        verify(executor2, times(1)).execute(any(Runnable.class));
+
+    }
+
+    @Test
+    public void testIfFutureIsCompletedIfListenerIsRegisteredLater() throws Exception {
+        bigQueue = new BigQueueImpl(testDir, "testIfFutureIsCompletedIfListenerIsRegisteredLater", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE );
+        Executor executor = mock(Executor.class);
+        bigQueue.enqueue("test".getBytes());
+
+        ListenableFuture<IBigQueue> future = bigQueue.queueReadyForDequeue();
+        future.addListener(mock(Runnable.class), executor);
+        verify(executor).execute(any(Runnable.class));
+
+    }
+
+    @Test
+    public void testIfFutureIsRecreatedAfterDequeue() throws Exception {
+        bigQueue = new BigQueueImpl(testDir, "testIfFutureIsRecreatedAfterDequeue", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE );
+        Executor executor = mock(Executor.class);
+        bigQueue.enqueue("test".getBytes());
+        ListenableFuture<IBigQueue> future = bigQueue.queueReadyForDequeue();
+        assertTrue(future.isDone());
+        bigQueue.dequeue();
+        future = bigQueue.queueReadyForDequeue();
+
+        assertFalse(future.isDone());
+        assertFalse(future.isCancelled());
+
+        future.addListener(mock(Runnable.class), executor);
+
+        bigQueue.enqueue("test".getBytes());
+        verify(executor).execute(any(Runnable.class));
+
     }
 
 	@After
