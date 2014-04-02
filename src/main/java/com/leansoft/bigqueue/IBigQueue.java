@@ -1,5 +1,7 @@
 package com.leansoft.bigqueue;
 
+import com.google.common.util.concurrent.ListenableFuture;
+
 import java.io.Closeable;
 import java.io.IOException;
 
@@ -33,6 +35,16 @@ public interface IBigQueue extends Closeable {
 	 * @throws IOException exception throws if there is any IO error during dequeue operation.
 	 */
 	public byte[] dequeue() throws IOException;
+
+    /**
+     * Retrieves a Future which will complete if new Items where enqued.
+     *
+     * Use this method to retrieve a future where to register as Listener instead of repeatedly polling the queues state.
+     *
+     * @return a ListenableFuture which completes with this queue if items are ready to be dequeued.
+     */
+    public ListenableFuture<IBigQueue> queueReadyForDequeue();
+
 	
 	/**
 	 * Removes all items of a queue, this will empty the queue and delete all back data files.

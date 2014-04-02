@@ -1,20 +1,21 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.leansoft</groupId>
-  <artifactId>bigqueue</artifactId>
-  <version>0.7.1-SNAPSHOT</version>
-  <packaging>jar</packaging>
+    <groupId>com.leansoft</groupId>
+    <artifactId>bigqueue</artifactId>
+    <version>0.7.1-SNAPSHOT</version>
+    <packaging>jar</packaging>
 
-  <name>bigqueue</name>
-  <url>https://github.com/bulldog2011/bigqueue</url>
-  
-  <description>Light, fast and persistent queue.</description>
-  <scm>
+    <name>bigqueue</name>
+    <url>https://github.com/bulldog2011/bigqueue</url>
+
+    <description>Light, fast and persistent queue.</description>
+    <scm>
         <connection>scm:git:git://github.com/bulldog2011/bigqueue.git</connection>
         <developerConnection>scm:git:git@github.com:bulldog2011/bigqueue.git</developerConnection>
         <url>https://github.com/bulldog2011/bigqueue</url>
-  </scm>
+    </scm>
     <licenses>
         <license>
             <name>The Apache Software License, Version 2.0</name>
@@ -34,39 +35,44 @@
         </developer>
     </developers>
 
-  <distributionManagement>
-    <repository>
-      <id>github.release.repo</id>
-      <name>Release Repository</name>
-      <url>file:///dev/bulldog-repo/repo/releases</url>
-    </repository>
-    <snapshotRepository>
-      <id>github.snapshot.repo</id>
-      <name>Snapshot Repository</name>
-      <url>file:///dev/bulldog-repo/repo/snapshots</url>
-    </snapshotRepository>
-  </distributionManagement>
+    <distributionManagement>
+        <repository>
+            <id>github.release.repo</id>
+            <name>Release Repository</name>
+            <url>file:///dev/bulldog-repo/repo/releases</url>
+        </repository>
+        <snapshotRepository>
+            <id>github.snapshot.repo</id>
+            <name>Snapshot Repository</name>
+            <url>file:///dev/bulldog-repo/repo/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
 
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-  </properties>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    </properties>
 
-  <dependencies>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.10</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>log4j</groupId>
-      <artifactId>log4j</artifactId>
-      <version>1.2.16</version>
-    </dependency>
-  </dependencies>
-  
-  <build>
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.10</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.16</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>16.0.1</version>
+        </dependency>
+    </dependencies>
+
+    <build>
         <resources>
             <resource>
                 <filtering>true</filtering>
@@ -91,7 +97,7 @@
                 <artifactId>maven-resources-plugin</artifactId>
                 <configuration>
                     <encoding>UTF-8</encoding>
-                    <resources />
+                    <resources/>
                 </configuration>
             </plugin>
             <plugin>
@@ -147,14 +153,14 @@
                     </descriptors>
                 </configuration>
             </plugin>
-			<plugin>
-			  <groupId>org.apache.maven.plugins</groupId>
-			  <artifactId>maven-release-plugin</artifactId>
-			  <configuration>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <configuration>
                     <pushChanges>false</pushChanges>
                     <localCheckout>false</localCheckout>
-              </configuration>
-			</plugin>
+                </configuration>
+            </plugin>
         </plugins>
         <pluginManagement>
             <plugins>
@@ -175,7 +181,7 @@
                                         </goals>
                                     </pluginExecutionFilter>
                                     <action>
-                                        <ignore />
+                                        <ignore/>
                                     </action>
                                 </pluginExecution>
                             </pluginExecutions>
@@ -184,6 +190,6 @@
                 </plugin>
             </plugins>
         </pluginManagement>
-  </build>
-  
+    </build>
+
 </project>
