@@ -257,6 +257,18 @@ public class BigQueueUnitTest {
 
     }
 
+    @Test
+    public void testIfFutureIsCanceledAfterClosing() throws Exception {
+        bigQueue = new BigQueueImpl(testDir, "testIfFutureIsCanceledAfterClosing", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE );
+        Executor executor = mock(Executor.class);
+        ListenableFuture<IBigQueue> future = bigQueue.queueReadyForDequeue();
+        future.addListener(mock(Runnable.class), executor);
+        bigQueue.close();
+        assertTrue(future.isCancelled());
+    }
+
+
+
 	@After
 	public void clean() throws IOException {
 		if (bigQueue != null) {

@@ -47,6 +47,8 @@ public class BigQueueImpl implements IBigQueue {
 
     // locks for queue front write management
     final Lock queueFrontWriteLock = new ReentrantLock();
+
+    // lock for dequeueFuture access
     final Lock futureLock = new ReentrantLock();
     private SettableFuture<IBigQueue> dequeueFuture;
 
@@ -97,40 +99,6 @@ public class BigQueueImpl implements IBigQueue {
     }
 
 
-    /**
-     * Completes the dequeue future
-     */
-    private void completeFuture() {
-        futureLock.lock();
-        if (dequeueFuture != null) {
-            dequeueFuture.set(this);
-        }
-        futureLock.unlock();
-    }
-
-    /**
-     * Initializes the futures if it's null at the moment
-     */
-    private void initializeFutureIfNecessary() {
-        futureLock.lock();
-        if (dequeueFuture == null) {
-            dequeueFuture = SettableFuture.create();
-        }
-        if (!this.isEmpty()) {
-            dequeueFuture.set(this);
-        }
-        futureLock.unlock();
-    }
-
-    /**
-     * Resets the future to null
-     */
-    private void invalidateFuture() {
-        futureLock.lock();
-        dequeueFuture = null;
-        futureLock.unlock();
-    }
-
     @Override
     public byte[] dequeue() throws IOException {
         long queueFrontIndex = -1L;
@@ -167,9 +135,43 @@ public class BigQueueImpl implements IBigQueue {
 
     @Override
     public ListenableFuture<IBigQueue> queueReadyForDequeue() {
-        initializeFutureIfNecessary();
+        this.initializeFutureIfNecessary();
         return dequeueFuture;
 
+    }
+
+    /**
+     * Completes the dequeue future
+     */
+    private void completeFuture() {
+        futureLock.lock();
+        if (dequeueFuture != null) {
+            dequeueFuture.set(this);
+        }
+        futureLock.unlock();
+    }
+
+    /**
+     * Initializes the futures if it's null at the moment
+     */
+    private void initializeFutureIfNecessary() {
+        futureLock.lock();
+        if (dequeueFuture == null) {
+            dequeueFuture = SettableFuture.create();
+        }
+        if (!this.isEmpty()) {
+            dequeueFuture.set(this);
+        }
+        futureLock.unlock();
+    }
+
+    /**
+     * Resets the future to null
+     */
+    private void invalidateFuture() {
+        futureLock.lock();
+        dequeueFuture = null;
+        futureLock.unlock();
     }
 
     @Override
@@ -226,6 +228,9 @@ public class BigQueueImpl implements IBigQueue {
         }
 
         if (dequeueFuture != null) {
+            /* Cancel the future but don't interrupt running tasks
+            because they might perform further work not refering to the queue
+             */
             dequeueFuture.cancel(false);
         }
 
