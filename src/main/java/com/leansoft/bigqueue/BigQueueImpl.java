@@ -98,23 +98,33 @@ public class BigQueueImpl implements IBigQueue {
 
 
     /**
-     * Completes the dequeue feature if it exists
+     * Completes the dequeue future
      */
     private void completeFuture() {
         futureLock.lock();
-        this.initializeFutureIfNecessary();
-        dequeueFuture.set(this);
+        if (dequeueFuture != null) {
+            dequeueFuture.set(this);
+        }
         futureLock.unlock();
     }
 
+    /**
+     * Initializes the futures if it's null at the moment
+     */
     private void initializeFutureIfNecessary() {
         futureLock.lock();
         if (dequeueFuture == null) {
             dequeueFuture = SettableFuture.create();
         }
+        if (!this.isEmpty()) {
+            dequeueFuture.set(this);
+        }
         futureLock.unlock();
     }
 
+    /**
+     * Resets the future to null
+     */
     private void invalidateFuture() {
         futureLock.lock();
         dequeueFuture = null;
