@@ -5,8 +5,9 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
 import java.io.IOException;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.junit.After;
@@ -208,7 +209,7 @@ public class BigQueueUnitTest {
 
     @Test
     public void testIfFutureIsCompletedAtEnqueueAndListenersAreCalled() throws Exception {
-        bigQueue = new BigQueueImpl(testDir, "testIfFutureIsCompletedAtEnqueueAndListenersAreCalled", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE );
+        bigQueue = new BigQueueImpl(testDir, "testIfFutureIsCompletedAtEnqueueAndListenersAreCalled", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE);
         Executor executor1 = mock(Executor.class);
         Executor executor2 = mock(Executor.class);
         ListenableFuture<IBigQueue> future = bigQueue.queueReadyForDequeue();
@@ -227,7 +228,7 @@ public class BigQueueUnitTest {
 
     @Test
     public void testIfFutureIsCompletedIfListenerIsRegisteredLater() throws Exception {
-        bigQueue = new BigQueueImpl(testDir, "testIfFutureIsCompletedIfListenerIsRegisteredLater", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE );
+        bigQueue = new BigQueueImpl(testDir, "testIfFutureIsCompletedIfListenerIsRegisteredLater", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE);
         Executor executor = mock(Executor.class);
         bigQueue.enqueue("test".getBytes());
 
@@ -239,7 +240,7 @@ public class BigQueueUnitTest {
 
     @Test
     public void testIfFutureIsRecreatedAfterDequeue() throws Exception {
-        bigQueue = new BigQueueImpl(testDir, "testIfFutureIsRecreatedAfterDequeue", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE );
+        bigQueue = new BigQueueImpl(testDir, "testIfFutureIsRecreatedAfterDequeue", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE);
         Executor executor = mock(Executor.class);
         bigQueue.enqueue("test".getBytes());
         ListenableFuture<IBigQueue> future = bigQueue.queueReadyForDequeue();
@@ -259,7 +260,7 @@ public class BigQueueUnitTest {
 
     @Test
     public void testIfFutureIsCanceledAfterClosing() throws Exception {
-        bigQueue = new BigQueueImpl(testDir, "testIfFutureIsCanceledAfterClosing", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE );
+        bigQueue = new BigQueueImpl(testDir, "testIfFutureIsCanceledAfterClosing", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE);
         Executor executor = mock(Executor.class);
         ListenableFuture<IBigQueue> future = bigQueue.queueReadyForDequeue();
         future.addListener(mock(Runnable.class), executor);
@@ -268,12 +269,12 @@ public class BigQueueUnitTest {
     }
 
     @Test
-    public void testIfFutureWorksAfterQueueRecreation() throws  Exception {
-        bigQueue = new BigQueueImpl(testDir, "testIfFutureWorksAfterQueueRecreation", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE );
+    public void testIfFutureWorksAfterQueueRecreation() throws Exception {
+        bigQueue = new BigQueueImpl(testDir, "testIfFutureWorksAfterQueueRecreation", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE);
         bigQueue.enqueue("test".getBytes());
         bigQueue.close();
 
-        bigQueue = new BigQueueImpl(testDir, "testIfFutureWorksAfterQueueRecreation", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE );
+        bigQueue = new BigQueueImpl(testDir, "testIfFutureWorksAfterQueueRecreation", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE);
         Executor executor = mock(Executor.class);
         ListenableFuture<IBigQueue> future = bigQueue.queueReadyForDequeue();
         future.addListener(mock(Runnable.class), executor);
@@ -284,7 +285,7 @@ public class BigQueueUnitTest {
 
     @Test
     public void testIfFutureIsInvalidatedIfAllItemsWhereRemoved() throws Exception {
-        bigQueue = new BigQueueImpl(testDir, "testIfFutureIsInvalidatedIfAllItemsWhereRemoved", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE );
+        bigQueue = new BigQueueImpl(testDir, "testIfFutureIsInvalidatedIfAllItemsWhereRemoved", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE);
         bigQueue.enqueue("test".getBytes());
 
         Executor executor1 = mock(Executor.class);
@@ -304,6 +305,109 @@ public class BigQueueUnitTest {
         bigQueue.enqueue("test".getBytes());
 
         verify(executor2).execute(any(Runnable.class));
+    }
+
+    @Test
+    public void testFutureForComplexConsumerScenario() throws Exception {
+        bigQueue = new BigQueueImpl(testDir, "testFutureForComplexConsumerScenario", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE);
+        final IBigQueue spyBigQueue = spy(bigQueue);
+
+        for (int i = 0; i < 50; i++) {
+            spyBigQueue.enqueue(String.valueOf(i).getBytes());
+        }
+
+        ListenableFuture<IBigQueue> future = spyBigQueue.queueReadyForDequeue();
+        final Executor executor = Executors.newFixedThreadPool(2);
+
+
+        final Semaphore testFlowControl = new Semaphore(1);
+        testFlowControl.acquire();
+
+
+        Runnable r = new Runnable() {
+            @Override
+            public void run() {
+                testFlowControl.tryAcquire();
+                while (!spyBigQueue.isEmpty()) {
+                    try {
+                        spyBigQueue.dequeue();
+                    } catch (IOException e) {
+                    }
+                }
+                spyBigQueue.queueReadyForDequeue().addListener(this, executor);
+                testFlowControl.release();
+            }
+        };
+
+
+        future.addListener(r, executor);
+        testFlowControl.acquire();
+        verify(spyBigQueue, times(50)).dequeue();
+
+        for (int j = 1; j <= 10; j++) {
+            for (int i = 0; i < 50; i++) {
+                spyBigQueue.enqueue(String.valueOf(i).getBytes());
+            }
+
+            testFlowControl.acquire();
+            verify(spyBigQueue, times(50 + j * 50)).dequeue();
+
+        }
+
+
+    }
+
+    @Test
+    public void testFutureIfConsumerDequeuesAllWhenAsynchronousWriting() throws Exception {
+        bigQueue = new BigQueueImpl(testDir, "testFutureIfConsumerDequeuesAllWhenAsynchronousWriting", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE);
+        final int numberOfItems = 10000;
+        final IBigQueue spyBigQueue = spy(bigQueue);
+
+
+        final Executor executor = Executors.newFixedThreadPool(2);
+        final Semaphore testFlowControl = new Semaphore(2);
+        testFlowControl.acquire(2);
+
+        Runnable r = new Runnable() {
+            int dequeueCount = 0;
+
+            @Override
+            public void run() {
+                while (!spyBigQueue.isEmpty()) {
+                    try {
+                        spyBigQueue.dequeue();
+                        dequeueCount++;
+                    } catch (IOException e) {
+                    }
+                }
+                spyBigQueue.queueReadyForDequeue().addListener(this, executor);
+                if (dequeueCount == numberOfItems) {
+                    testFlowControl.release();
+                }
+            }
+        };
+
+        spyBigQueue.queueReadyForDequeue().addListener(r, executor);
+
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for (int i = 0; i < numberOfItems; i++) {
+                    try {
+                        spyBigQueue.enqueue(String.valueOf(i).getBytes());
+                    } catch (Exception e) {
+                    }
+                }
+                testFlowControl.release();
+            }
+        }).start();
+
+        if (testFlowControl.tryAcquire(2, 10, TimeUnit.SECONDS)) {
+            verify(spyBigQueue, times(numberOfItems)).dequeue();
+        } else {
+            fail("Something is wrong with the testFlowControl semaphore or timing");
+        }
     }
 
 
