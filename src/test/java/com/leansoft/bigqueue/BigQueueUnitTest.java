@@ -267,6 +267,21 @@ public class BigQueueUnitTest {
         assertTrue(future.isCancelled());
     }
 
+    @Test
+    public void testIfFutureWorksAfterQueueRecreation() throws  Exception {
+        bigQueue = new BigQueueImpl(testDir, "testIfFutureWorksAfterQueueRecreation", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE );
+        bigQueue.enqueue("test".getBytes());
+        bigQueue.close();
+
+        bigQueue = new BigQueueImpl(testDir, "testIfFutureWorksAfterQueueRecreation", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE );
+        Executor executor = mock(Executor.class);
+        ListenableFuture<IBigQueue> future = bigQueue.queueReadyForDequeue();
+        future.addListener(mock(Runnable.class), executor);
+        assertTrue(future.isDone());
+        verify(executor).execute(any(Runnable.class));
+
+    }
+
 
 
 	@After
