@@ -184,6 +184,7 @@ public class BigQueueImpl implements IBigQueue {
             ByteBuffer queueFrontIndexBuffer = queueFrontIndexPage.getLocal(0);
             queueFrontIndexBuffer.putLong(0L);
             queueFrontIndexPage.setDirty(true);
+            this.invalidateFuture();
         } finally {
             queueFrontWriteLock.unlock();
         }

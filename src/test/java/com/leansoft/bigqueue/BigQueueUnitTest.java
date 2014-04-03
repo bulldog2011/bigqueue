@@ -282,6 +282,30 @@ public class BigQueueUnitTest {
 
     }
 
+    @Test
+    public void testIfFutureIsInvalidatedIfAllItemsWhereRemoved() throws Exception {
+        bigQueue = new BigQueueImpl(testDir, "testIfFutureIsInvalidatedIfAllItemsWhereRemoved", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE );
+        bigQueue.enqueue("test".getBytes());
+
+        Executor executor1 = mock(Executor.class);
+        Executor executor2 = mock(Executor.class);
+
+        ListenableFuture<IBigQueue> future = bigQueue.queueReadyForDequeue();
+        future.addListener(mock(Runnable.class), executor1);
+
+        bigQueue.removeAll();
+
+        future = bigQueue.queueReadyForDequeue();
+        future.addListener(mock(Runnable.class), executor2);
+
+        verify(executor1).execute(any(Runnable.class));
+        verify(executor2, never()).execute(any(Runnable.class));
+
+        bigQueue.enqueue("test".getBytes());
+
+        verify(executor2).execute(any(Runnable.class));
+    }
+
 
 
 	@After
