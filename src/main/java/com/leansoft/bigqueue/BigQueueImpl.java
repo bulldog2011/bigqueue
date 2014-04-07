@@ -49,7 +49,7 @@ public class BigQueueImpl implements IBigQueue {
     final Lock queueFrontWriteLock = new ReentrantLock();
 
     // lock for dequeueFuture access
-    final Lock futureLock = new ReentrantLock();
+    private final Object futureLock = new Object();
     private SettableFuture<IBigQueue> dequeueFuture;
 
     /**
@@ -144,34 +144,34 @@ public class BigQueueImpl implements IBigQueue {
      * Completes the dequeue future
      */
     private void completeFuture() {
-        futureLock.lock();
-        if (dequeueFuture != null) {
-            dequeueFuture.set(this);
+        synchronized (futureLock) {
+            if (dequeueFuture != null) {
+                dequeueFuture.set(this);
+            }
         }
-        futureLock.unlock();
     }
 
     /**
      * Initializes the futures if it's null at the moment
      */
     private void initializeFutureIfNecessary() {
-        futureLock.lock();
-        if (dequeueFuture == null) {
-            dequeueFuture = SettableFuture.create();
+        synchronized (futureLock) {
+            if (dequeueFuture == null) {
+                dequeueFuture = SettableFuture.create();
+            }
+            if (!this.isEmpty()) {
+                dequeueFuture.set(this);
+            }
         }
-        if (!this.isEmpty()) {
-            dequeueFuture.set(this);
-        }
-        futureLock.unlock();
     }
 
     /**
      * Resets the future to null
      */
     private void invalidateFuture() {
-        futureLock.lock();
-        dequeueFuture = null;
-        futureLock.unlock();
+        synchronized (futureLock) {
+           dequeueFuture = null;
+        }
     }
 
     @Override
