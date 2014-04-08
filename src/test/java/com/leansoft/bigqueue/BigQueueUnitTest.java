@@ -373,22 +373,31 @@ public class BigQueueUnitTest {
         final Semaphore testFlowControl = new Semaphore(2);
         testFlowControl.acquire(2);
 
-        final ListenableFuture<byte[]> future = spyBigQueue.dequeueAsync();
+        final ListenableFuture<byte[]> future1 = spyBigQueue.dequeueAsync();
 
         Runnable r = new Runnable() {
             int dequeueCount = 0;
+            ListenableFuture<byte[]> future;
 
             @Override
             public void run() {
-                dequeueCount++;
-                spyBigQueue.dequeueAsync().addListener(this, executor);
-                if (dequeueCount >= numberOfItems) {
-                    testFlowControl.release();
+                byte[] item = null;
+                try {
+                    item = (future == null) ? future1.get() : future.get();
+                    assertEquals(String.valueOf(dequeueCount), new String(item));
+                    dequeueCount++;
+                    future = spyBigQueue.dequeueAsync();
+                    future.addListener(this, executor);
+                    if (dequeueCount == numberOfItems) {
+                        testFlowControl.release();
+                    }
+                } catch (Exception e) {
+                    fail("Unexpected exception during dequeue operation");
                 }
             }
         };
 
-        future.addListener(r, executor);
+        future1.addListener(r, executor);
 
 
         new Thread(new Runnable() {
@@ -398,6 +407,7 @@ public class BigQueueUnitTest {
                     try {
                         spyBigQueue.enqueue(String.valueOf(i).getBytes());
                     } catch (Exception e) {
+                        fail("Unexpected exception during enqueue operation");
                     }
                 }
                 testFlowControl.release();

@@ -135,63 +135,7 @@ public class BigQueueImpl implements IBigQueue {
         return dequeueFuture;
     }
 
-    /**
-     * Completes the dequeue future
-     */
-    private void completeFutures() {
-        synchronized (futureLock) {
-            if (peekFuture != null && !peekFuture.isDone()) {
-                try {
-                    peekFuture.set(this.peek());
-                } catch (IOException e) {
-                    peekFuture.setException(e);
-                }
-            }
-            if (dequeueFuture != null && !dequeueFuture.isDone()) {
-                try {
-                    dequeueFuture.set(this.dequeue());
-                } catch (IOException e) {
-                    dequeueFuture.setException(e);
-                }
-            }
-        }
-    }
 
-    /**
-     * Initializes the futures if it's null at the moment
-     */
-    private void initializeDequeueFutureIfNecessary() {
-        synchronized (futureLock) {
-            if (dequeueFuture == null || dequeueFuture.isDone()) {
-                dequeueFuture = SettableFuture.create();
-            }
-            if (!this.isEmpty()) {
-                try {
-                    dequeueFuture.set(this.dequeue());
-                } catch (IOException e) {
-                    dequeueFuture.setException(e);
-                }
-            }
-        }
-    }
-
-    /**
-     * Initializes the futures if it's null at the moment
-     */
-    private void initializePeekFutureIfNecessary() {
-        synchronized (futureLock) {
-            if (peekFuture == null || peekFuture.isDone()) {
-                peekFuture = SettableFuture.create();
-            }
-            if (!this.isEmpty()) {
-                try {
-                    peekFuture.set(this.peek());
-                } catch (IOException e) {
-                    peekFuture.setException(e);
-                }
-            }
-        }
-    }
 
     @Override
     public void removeAll() throws IOException {
@@ -254,12 +198,10 @@ public class BigQueueImpl implements IBigQueue {
 
 
         synchronized (futureLock) {
-
             /* Cancel the future but don't interrupt running tasks
             because they might perform further work not refering to the queue
              */
             if (peekFuture != null) {
-
                 peekFuture.cancel(false);
             }
             if (dequeueFuture != null) {
@@ -305,6 +247,65 @@ public class BigQueueImpl implements IBigQueue {
             return (qRear - qFront);
         } else {
             return Long.MAX_VALUE - qFront + 1 + qRear;
+        }
+    }
+
+
+    /**
+     * Completes the dequeue future
+     */
+    private void completeFutures() {
+        synchronized (futureLock) {
+            if (peekFuture != null && !peekFuture.isDone()) {
+                try {
+                    peekFuture.set(this.peek());
+                } catch (IOException e) {
+                    peekFuture.setException(e);
+                }
+            }
+            if (dequeueFuture != null && !dequeueFuture.isDone()) {
+                try {
+                    dequeueFuture.set(this.dequeue());
+                } catch (IOException e) {
+                    dequeueFuture.setException(e);
+                }
+            }
+        }
+    }
+
+    /**
+     * Initializes the futures if it's null at the moment
+     */
+    private void initializeDequeueFutureIfNecessary() {
+        synchronized (futureLock) {
+            if (dequeueFuture == null || dequeueFuture.isDone()) {
+                dequeueFuture = SettableFuture.create();
+            }
+            if (!this.isEmpty()) {
+                try {
+                    dequeueFuture.set(this.dequeue());
+                } catch (IOException e) {
+                    dequeueFuture.setException(e);
+                }
+            }
+        }
+    }
+
+    /**
+     * Initializes the futures if it's null at the moment
+     */
+    private void initializePeekFutureIfNecessary() {
+        synchronized (futureLock) {
+            if (peekFuture == null || peekFuture.isDone()) {
+                peekFuture = SettableFuture.create();
+            }
+            if (!this.isEmpty()) {
+                try {
+                    peekFuture.set(this.peek());
+                } catch (IOException e) {
+                    peekFuture.setException(e);
+                }
+            }
         }
     }
 
