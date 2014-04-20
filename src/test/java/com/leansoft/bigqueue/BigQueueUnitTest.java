@@ -1,9 +1,13 @@
 package com.leansoft.bigqueue;
 
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.*;
 
 import java.io.IOException;
+import java.util.concurrent.*;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import org.junit.After;
 import org.junit.Test;
 
@@ -200,6 +204,224 @@ public class BigQueueUnitTest {
         publisher.join();
         subscriber.join();
     }
+
+    @Test
+    public void testIfFutureIsCompletedAtEnqueueAndListenersAreCalled() throws Exception {
+        bigQueue = new BigQueueImpl(testDir, "testIfFutureIsCompletedAtEnqueueAndListenersAreCalled", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE);
+        Executor executor1 = mock(Executor.class);
+        Executor executor2 = mock(Executor.class);
+        ListenableFuture<byte[]> future = bigQueue.dequeueAsync();
+        future.addListener(mock(Runnable.class), executor1);
+        future.addListener(mock(Runnable.class), executor2);
+
+        verify(executor1, never()).execute(any(Runnable.class));
+
+        bigQueue.enqueue("test".getBytes());
+        bigQueue.enqueue("test2".getBytes());
+
+        assertTrue(future.isDone());
+        assertEquals("test", new String(future.get()));
+        verify(executor1, times(1)).execute(any(Runnable.class));
+        verify(executor2, times(1)).execute(any(Runnable.class));
+
+
+        ListenableFuture<byte[]> future2 = bigQueue.dequeueAsync();
+
+        future2.addListener(mock(Runnable.class), executor1);
+        assertTrue(future2.isDone());
+
+        try {
+            byte[] entry = future2.get(5,TimeUnit.SECONDS);
+            assertEquals("test2", new String(entry));
+        } catch (Exception e) {
+            fail("Future isn't already completed though there are further entries.");
+        }
+
+    }
+
+    @Test
+    public void testIfFutureIsCompletedIfListenerIsRegisteredLater() throws Exception {
+        bigQueue = new BigQueueImpl(testDir, "testIfFutureIsCompletedIfListenerIsRegisteredLater", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE);
+        Executor executor = mock(Executor.class);
+        bigQueue.enqueue("test".getBytes());
+
+        ListenableFuture<byte[]> future = bigQueue.dequeueAsync();
+        assertNotNull(future);
+        future.addListener(mock(Runnable.class), executor);
+        verify(executor).execute(any(Runnable.class));
+
+    }
+
+    @Test
+    public void testIfFutureIsRecreatedAfterDequeue() throws Exception {
+        bigQueue = new BigQueueImpl(testDir, "testIfFutureIsRecreatedAfterDequeue", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE);
+        Executor executor = mock(Executor.class);
+        bigQueue.enqueue("test".getBytes());
+        ListenableFuture<byte[]> future = bigQueue.dequeueAsync();
+        assertTrue(future.isDone());
+        future = bigQueue.dequeueAsync();
+
+        assertFalse(future.isDone());
+        assertFalse(future.isCancelled());
+
+        future.addListener(mock(Runnable.class), executor);
+
+        bigQueue.enqueue("test".getBytes());
+        verify(executor).execute(any(Runnable.class));
+
+    }
+
+    @Test
+    public void testIfFutureIsCanceledAfterClosing() throws Exception {
+        bigQueue = new BigQueueImpl(testDir, "testIfFutureIsCanceledAfterClosing", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE);
+        Executor executor = mock(Executor.class);
+        ListenableFuture<byte[]> future = bigQueue.dequeueAsync();
+        future.addListener(mock(Runnable.class), executor);
+        bigQueue.close();
+        assertTrue(future.isCancelled());
+    }
+
+    @Test
+    public void testIfFutureWorksAfterQueueRecreation() throws Exception {
+        bigQueue = new BigQueueImpl(testDir, "testIfFutureWorksAfterQueueRecreation", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE);
+        bigQueue.enqueue("test".getBytes());
+        bigQueue.close();
+
+        bigQueue = new BigQueueImpl(testDir, "testIfFutureWorksAfterQueueRecreation", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE);
+        Executor executor = mock(Executor.class);
+        ListenableFuture<byte[]> future = bigQueue.dequeueAsync();
+        future.addListener(mock(Runnable.class), executor);
+        assertTrue(future.isDone());
+        verify(executor).execute(any(Runnable.class));
+
+    }
+
+    @Test
+    public void testIfFutureIsInvalidatedIfAllItemsWhereRemoved() throws Exception {
+        bigQueue = new BigQueueImpl(testDir, "testIfFutureIsInvalidatedIfAllItemsWhereRemoved", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE);
+        bigQueue.enqueue("test".getBytes());
+
+        Executor executor1 = mock(Executor.class);
+        Executor executor2 = mock(Executor.class);
+
+        ListenableFuture<byte[]> future = bigQueue.dequeueAsync();
+        future.addListener(mock(Runnable.class), executor1);
+
+        bigQueue.removeAll();
+
+        future = bigQueue.dequeueAsync();
+        future.addListener(mock(Runnable.class), executor2);
+
+        verify(executor1).execute(any(Runnable.class));
+        verify(executor2, never()).execute(any(Runnable.class));
+
+        bigQueue.enqueue("test".getBytes());
+
+        verify(executor2).execute(any(Runnable.class));
+    }
+
+
+    @Test
+    public void testParallelAsyncDequeueAndPeekOperations() throws Exception {
+        bigQueue = new BigQueueImpl(testDir, "testParallelAsyncDequeueAndPeekOperations", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE);
+
+        ListenableFuture<byte[]> dequeueFuture = bigQueue.dequeueAsync();
+        ListenableFuture<byte[]> peekFuture = bigQueue.peekAsync();
+
+        bigQueue.enqueue("Test1".getBytes());
+
+
+        assertTrue(dequeueFuture.isDone());
+        assertTrue(peekFuture.isDone());
+
+        assertEquals("Test1", new String(dequeueFuture.get()));
+        assertEquals("Test1", new String(peekFuture.get()));
+
+        assertEquals(0, bigQueue.size());
+    }
+
+
+    @Test
+    public void testMultiplePeekAsyncOperations() throws Exception {
+        bigQueue = new BigQueueImpl(testDir, "testMultiplePeekAsyncOperations", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE);
+        ListenableFuture<byte[]> peekFuture1 = bigQueue.peekAsync();
+
+        bigQueue.enqueue("Test1".getBytes());
+
+        ListenableFuture<byte[]> peekFuture2 = bigQueue.peekAsync();
+        ListenableFuture<byte[]> peekFuture3 = bigQueue.peekAsync();
+
+        assertTrue(peekFuture1.isDone());
+        assertTrue(peekFuture2.isDone());
+        assertTrue(peekFuture3.isDone());
+        assertEquals(1, bigQueue.size());
+
+        assertEquals("Test1", new String(peekFuture1.get()));
+        assertEquals("Test1", new String(peekFuture2.get()));
+        assertEquals("Test1", new String(peekFuture3.get()));
+    }
+
+
+    @Test
+    public void testFutureIfConsumerDequeuesAllWhenAsynchronousWriting() throws Exception {
+        bigQueue = new BigQueueImpl(testDir, "testFutureIfConsumerDequeuesAllWhenAsynchronousWriting", BigArrayImpl.MINIMUM_DATA_PAGE_SIZE);
+        final int numberOfItems = 10000;
+        final IBigQueue spyBigQueue = spy(bigQueue);
+
+
+        final Executor executor = Executors.newFixedThreadPool(2);
+        final Semaphore testFlowControl = new Semaphore(2);
+        testFlowControl.acquire(2);
+
+        final ListenableFuture<byte[]> future1 = spyBigQueue.dequeueAsync();
+
+        Runnable r = new Runnable() {
+            int dequeueCount = 0;
+            ListenableFuture<byte[]> future;
+
+            @Override
+            public void run() {
+                byte[] item = null;
+                try {
+                    item = (future == null) ? future1.get() : future.get();
+                    assertEquals(String.valueOf(dequeueCount), new String(item));
+                    dequeueCount++;
+                    future = spyBigQueue.dequeueAsync();
+                    future.addListener(this, executor);
+                    if (dequeueCount == numberOfItems) {
+                        testFlowControl.release();
+                    }
+                } catch (Exception e) {
+                    fail("Unexpected exception during dequeue operation");
+                }
+            }
+        };
+
+        future1.addListener(r, executor);
+
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for (int i = 0; i < numberOfItems; i++) {
+                    try {
+                        spyBigQueue.enqueue(String.valueOf(i).getBytes());
+                    } catch (Exception e) {
+                        fail("Unexpected exception during enqueue operation");
+                    }
+                }
+                testFlowControl.release();
+            }
+        }).start();
+
+        if (testFlowControl.tryAcquire(2, 10, TimeUnit.SECONDS)) {
+            verify(spyBigQueue, times(numberOfItems)).dequeue();
+        } else {
+            fail("Something is wrong with the testFlowControl semaphore or timing");
+        }
+    }
+
+
 
 	@After
 	public void clean() throws IOException {
