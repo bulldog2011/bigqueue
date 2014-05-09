@@ -37,14 +37,14 @@
 
     <distributionManagement>
         <repository>
-            <id>github.release.repo</id>
-            <name>Release Repository</name>
-            <url>file:///dev/bulldog-repo/repo/releases</url>
+            <id>daum</id>
+            <name>Daum Repository</name>
+            <url>http://maven.daumcorp.com/content/repositories/daum</url>
         </repository>
         <snapshotRepository>
-            <id>github.snapshot.repo</id>
-            <name>Snapshot Repository</name>
-            <url>file:///dev/bulldog-repo/repo/snapshots</url>
+            <id>daum-snapshots</id>
+            <name>Daum Snapshot Repository</name>
+            <url>http://maven.daumcorp.com/content/repositories/daum-snapshots</url>
         </snapshotRepository>
     </distributionManagement>
 
