@@ -12,7 +12,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.leansoft.bigqueue.cache.ILRUCache;
 import com.leansoft.bigqueue.cache.LRUCacheImpl;
@@ -32,7 +33,7 @@ import static java.nio.channels.FileChannel.MapMode.READ_WRITE;
  */
 public class MappedPageFactoryImpl implements IMappedPageFactory {
 	
-	private final static Logger logger = Logger.getLogger(MappedPageFactoryImpl.class);
+	private final static Logger logger = LoggerFactory.getLogger(MappedPageFactoryImpl.class);
 	
 	private int pageSize;
 	private String pageDir;
