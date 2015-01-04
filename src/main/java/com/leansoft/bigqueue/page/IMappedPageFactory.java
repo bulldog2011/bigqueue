@@ -94,7 +94,15 @@ public interface IMappedPageFactory {
 	 * @throws IOException exception thrown if there was any IO error during the delete operation.
 	 */
 	void deletePagesBefore(long timestamp) throws IOException;
-	
+
+    /**
+     * Delete all pages before the specific index
+     *
+     * @param pageIndex page file index to check
+     * @throws IOException exception thrown if there was any IO error during the delete operation.
+     */
+    void deletePagesBeforePageIndex(long pageIndex) throws IOException;
+
 	/**
 	 * Get last modified timestamp of page file index
 	 * 
