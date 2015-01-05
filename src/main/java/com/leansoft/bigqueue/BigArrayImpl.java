@@ -192,31 +192,28 @@ public class BigArrayImpl implements IBigArray {
 	
 	@Override
 	public void removeBeforeIndex(long index) throws IOException {
-		try {
-			arrayWriteLock.lock();
-			
-			validateIndex(index);
-			
-			long indexPageIndex = Calculator.div(index, INDEX_ITEMS_PER_PAGE_BITS);
-			
-			ByteBuffer indexItemBuffer = this.getIndexItemBuffer(index);
-			long dataPageIndex = indexItemBuffer.getLong();
-			
-			long toRemoveIndexPageTimestamp = this.indexPageFactory.getPageFileLastModifiedTime(indexPageIndex);
-			long toRemoveDataPageItemstamp = this.dataPageFactory.getPageFileLastModifiedTime(dataPageIndex);
-			
-			if (toRemoveIndexPageTimestamp > 0L) { 
-				this.indexPageFactory.deletePagesBefore(toRemoveIndexPageTimestamp);
-			}
-			if (toRemoveDataPageItemstamp > 0L) {
-				this.dataPageFactory.deletePagesBefore(toRemoveDataPageItemstamp);
-			}
-			
-			// advance the tail to index
-			this.arrayTailIndex.set(index);
-		} finally {
-			arrayWriteLock.unlock();
-		}
+    try {
+      arrayWriteLock.lock();
+
+      validateIndex(index);
+
+      long indexPageIndex = Calculator.div(index, INDEX_ITEMS_PER_PAGE_BITS);
+
+      ByteBuffer indexItemBuffer = this.getIndexItemBuffer(index);
+      long dataPageIndex = indexItemBuffer.getLong();
+
+      if (indexPageIndex > 0L) {
+          this.indexPageFactory.deletePagesBeforePageIndex(indexPageIndex);
+      }
+      if (dataPageIndex > 0L) {
+          this.dataPageFactory.deletePagesBeforePageIndex(dataPageIndex);
+      }
+
+      // advance the tail to index
+      this.arrayTailIndex.set(index);
+    } finally {
+      arrayWriteLock.unlock();
+    }
 	}
 	
 
