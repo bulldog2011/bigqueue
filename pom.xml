@@ -10,6 +10,27 @@
     <name>bigqueue</name>
     <url>https://github.com/bulldog2011/bigqueue</url>
 
+    <profiles>
+        <profile>
+            <id>pre-JDK8</id>
+            <activation>
+                <jdk>[,1.8)</jdk>
+            </activation>
+            <properties>
+                <javadoc.additionalparam></javadoc.additionalparam>
+            </properties>
+        </profile>
+        <profile>
+            <id>post-JDK8</id>
+            <activation>
+                <jdk>[1.8,)</jdk>
+            </activation>
+            <properties>
+                <javadoc.additionalparam>-Xdoclint:none</javadoc.additionalparam>
+            </properties>
+        </profile>
+    </profiles>
+
     <description>Light, fast and persistent queue.</description>
     <scm>
         <connection>scm:git:git://github.com/bulldog2011/bigqueue.git</connection>
