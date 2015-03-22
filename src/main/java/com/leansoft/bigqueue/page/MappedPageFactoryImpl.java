@@ -165,31 +165,35 @@ public class MappedPageFactoryImpl implements IMappedPageFactory {
 	public void deletePage(long index) throws IOException {
 		// remove the page from cache first
 		cache.remove(index);
-		String fileName = this.getFileNameByIndex(index);
-		int count = 0;
-		int maxRound = 10;
-		boolean deleted = false;
-		while(count < maxRound) {
-			try {
-				FileUtil.deleteFile(new File(fileName));
-				deleted = true;
-				break;
-			} catch (IllegalStateException ex) {
-				try {
-					Thread.sleep(200);
-				} catch (InterruptedException e) {
+		final String fileName = this.getFileNameByIndex(index);
+		new Thread(new Runnable() {
+			public void run() {
+				int count = 0;
+				int maxRound = 10;
+				boolean deleted = false;
+				while(count < maxRound) {
+					try {
+						FileUtil.deleteFile(new File(fileName));
+						deleted = true;
+						break;
+					} catch (IllegalStateException ex) {
+						try {
+							Thread.sleep(200);
+						} catch (InterruptedException e) {
+						}
+						count++;
+						if (logger.isDebugEnabled()) {
+							logger.warn("fail to delete file " + fileName + ", tried round = " + count);
+						}
+					}
 				}
-				count++;
-				if (logger.isDebugEnabled()) {
-					logger.warn("fail to delete file " + fileName + ", tried round = " + count);
+				if (deleted) {
+					logger.info("Page file " + fileName + " was just deleted.");
+				} else {
+					logger.warn("fail to delete file " + fileName + " after max " + maxRound + " rounds of try, you may delete it manually.");
 				}
 			}
-		}
-		if (deleted) {
-			logger.info("Page file " + fileName + " was just deleted.");
-		} else {
-			logger.warn("fail to delete file " + fileName + " after max " + maxRound + " rounds of try, you may delete it manually.");
-		}
+		}).start();
 	}
 
 	@Override
