@@ -171,7 +171,6 @@ public class MappedPageFactoryImpl implements IMappedPageFactory {
 				int count = 0;
 				int maxRound = 10;
 				boolean deleted = false;
-				final long startTime = System.currentTimeMillis();
 				while(count < maxRound) {
 					try {
 						FileUtil.deleteFile(new File(fileName));
@@ -189,7 +188,7 @@ public class MappedPageFactoryImpl implements IMappedPageFactory {
 					}
 				}
 				if (deleted) {
-					logger.info("Page file " + fileName + " was just deleted. " + (System.currentTimeMillis() - startTime) + "ms");
+					logger.info("Page file " + fileName + " was just deleted.");
 				} else {
 					logger.warn("fail to delete file " + fileName + " after max " + maxRound + " rounds of try, you may delete it manually.");
 				}
