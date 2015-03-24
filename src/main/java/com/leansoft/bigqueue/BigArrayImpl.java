@@ -15,7 +15,6 @@ import com.leansoft.bigqueue.page.IMappedPageFactory;
 import com.leansoft.bigqueue.page.MappedPageFactoryImpl;
 import com.leansoft.bigqueue.utils.Calculator;
 import com.leansoft.bigqueue.utils.FileUtil;
-import org.apache.log4j.Logger;
 
 /**
  * A big array implementation supporting sequential append and random read.
@@ -34,7 +33,6 @@ import org.apache.log4j.Logger;
  *
  */
 public class BigArrayImpl implements IBigArray {
-	private final static Logger logger = Logger.getLogger(BigArrayImpl.class);
 
 	// folder name for index page
 	final static String INDEX_PAGE_FOLDER = "index";
@@ -194,10 +192,9 @@ public class BigArrayImpl implements IBigArray {
 
 	@Override
 	public void removeBeforeIndex(long index) throws IOException {
-		final long startTime = System.currentTimeMillis();
-
 		try {
 			arrayWriteLock.lock();
+
 			validateIndex(index);
 
 			long indexPageIndex = Calculator.div(index, INDEX_ITEMS_PER_PAGE_BITS);
@@ -216,9 +213,9 @@ public class BigArrayImpl implements IBigArray {
 			this.arrayTailIndex.set(index);
 		} finally {
 			arrayWriteLock.unlock();
-			logger.info("removeBeforeIndex " + (System.currentTimeMillis() - startTime) + "ms");
 		}
 	}
+
 
 
 	@Override
