@@ -190,6 +190,25 @@ public class BigArrayImpl implements IBigArray {
 		}
 	}
 
+	private class DeleteWorker implements Runnable {
+		private final IMappedPageFactory indexPagePFactory;
+		private final long pageIndex;
+
+		public DeleteWorker(IMappedPageFactory indexPagePFactory, long pageIndex) {
+			this.indexPagePFactory = indexPagePFactory;
+			this.pageIndex = pageIndex;
+		}
+
+		@Override
+		public void run() {
+			try {
+				indexPageFactory.deletePagesBeforePageIndex(pageIndex);
+			} catch (IOException e) {
+				//
+			}
+		}
+	}
+
 	@Override
 	public void removeBeforeIndex(long index) throws IOException {
 		try {
@@ -203,10 +222,10 @@ public class BigArrayImpl implements IBigArray {
 			long dataPageIndex = indexItemBuffer.getLong();
 
 			if (indexPageIndex > 0L) {
-				this.indexPageFactory.deletePagesBeforePageIndex(indexPageIndex);
+				new Thread(new DeleteWorker(this.indexPageFactory, indexPageIndex)).start();
 			}
 			if (dataPageIndex > 0L) {
-				this.dataPageFactory.deletePagesBeforePageIndex(dataPageIndex);
+				new Thread(new DeleteWorker(this.dataPageFactory, dataPageIndex)).start();
 			}
 
 			// advance the tail to index
