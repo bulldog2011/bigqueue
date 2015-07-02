@@ -33,7 +33,7 @@ import com.leansoft.bigqueue.utils.FileUtil;
  *
  */
 public class BigArrayImpl implements IBigArray {
-	
+
 	// folder name for index page
 	final static String INDEX_PAGE_FOLDER = "index";
 	// folder name for data page
@@ -189,33 +189,52 @@ public class BigArrayImpl implements IBigArray {
 			arrayWriteLock.unlock();
 		}
 	}
-	
+
+	private class DeleteWorker implements Runnable {
+		private final IMappedPageFactory indexPagePFactory;
+		private final long pageIndex;
+
+		public DeleteWorker(IMappedPageFactory indexPagePFactory, long pageIndex) {
+			this.indexPagePFactory = indexPagePFactory;
+			this.pageIndex = pageIndex;
+		}
+
+		@Override
+		public void run() {
+			try {
+				indexPageFactory.deletePagesBeforePageIndex(pageIndex);
+			} catch (IOException e) {
+				//
+			}
+		}
+	}
+
 	@Override
 	public void removeBeforeIndex(long index) throws IOException {
-    try {
-      arrayWriteLock.lock();
+		try {
+			arrayWriteLock.lock();
 
-      validateIndex(index);
+			validateIndex(index);
 
-      long indexPageIndex = Calculator.div(index, INDEX_ITEMS_PER_PAGE_BITS);
+			long indexPageIndex = Calculator.div(index, INDEX_ITEMS_PER_PAGE_BITS);
 
-      ByteBuffer indexItemBuffer = this.getIndexItemBuffer(index);
-      long dataPageIndex = indexItemBuffer.getLong();
+			ByteBuffer indexItemBuffer = this.getIndexItemBuffer(index);
+			long dataPageIndex = indexItemBuffer.getLong();
 
-      if (indexPageIndex > 0L) {
-          this.indexPageFactory.deletePagesBeforePageIndex(indexPageIndex);
-      }
-      if (dataPageIndex > 0L) {
-          this.dataPageFactory.deletePagesBeforePageIndex(dataPageIndex);
-      }
+			if (indexPageIndex > 0L) {
+				new Thread(new DeleteWorker(this.indexPageFactory, indexPageIndex)).start();
+			}
+			if (dataPageIndex > 0L) {
+				new Thread(new DeleteWorker(this.dataPageFactory, dataPageIndex)).start();
+			}
 
-      // advance the tail to index
-      this.arrayTailIndex.set(index);
-    } finally {
-      arrayWriteLock.unlock();
-    }
+			// advance the tail to index
+			this.arrayTailIndex.set(index);
+		} finally {
+			arrayWriteLock.unlock();
+		}
 	}
-	
+
 
 
 	@Override
