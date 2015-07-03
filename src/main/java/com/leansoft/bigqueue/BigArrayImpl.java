@@ -191,18 +191,18 @@ public class BigArrayImpl implements IBigArray {
 	}
 
 	private class DeleteWorker implements Runnable {
-		private final IMappedPageFactory indexPagePFactory;
+		private final IMappedPageFactory pageFactory;
 		private final long pageIndex;
 
-		public DeleteWorker(IMappedPageFactory indexPagePFactory, long pageIndex) {
-			this.indexPagePFactory = indexPagePFactory;
+		public DeleteWorker(IMappedPageFactory pageFactory, long pageIndex) {
+			this.pageFactory = pageFactory;
 			this.pageIndex = pageIndex;
 		}
 
 		@Override
 		public void run() {
 			try {
-				indexPageFactory.deletePagesBeforePageIndex(pageIndex);
+				this.pageFactory.deletePagesBeforePageIndex(pageIndex);
 			} catch (IOException e) {
 				//
 			}
