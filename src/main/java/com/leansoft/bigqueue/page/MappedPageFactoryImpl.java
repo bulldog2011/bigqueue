@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
 import java.util.*;
 
 import static java.nio.channels.FileChannel.MapMode.READ_WRITE;
@@ -160,35 +161,30 @@ public class MappedPageFactoryImpl implements IMappedPageFactory {
 		// remove the page from cache first
 		cache.remove(index);
 		final String fileName = this.getFileNameByIndex(index);
-		new Thread(new Runnable() {
-			public void run() {
-				int count = 0;
-				int maxRound = 10;
-				boolean deleted = false;
-				final long startTime = System.currentTimeMillis();
-				while(count < maxRound) {
-					try {
-						FileUtil.deleteFile(new File(fileName));
-						deleted = true;
-						break;
-					} catch (IllegalStateException ex) {
-						try {
-							Thread.sleep(200);
-						} catch (InterruptedException e) {
-						}
-						count++;
-						if (logger.isDebugEnabled()) {
-							logger.warn("fail to delete file " + fileName + ", tried round = " + count);
-						}
-					}
+		int count = 0;
+		int maxRound = 10;
+		boolean deleted = false;
+		final long startTime = System.currentTimeMillis();
+		while(count < maxRound) {
+			try {
+				deleted = Files.deleteIfExists(new File(fileName).toPath());;
+				break;
+			} catch (IllegalStateException ex) {
+				try {
+					Thread.sleep(200);
+				} catch (InterruptedException e) {
 				}
-				if (deleted) {
-					logger.info("Page file " + fileName + " was just deleted. " + (System.currentTimeMillis() - startTime) + "ms");
-				} else {
-					logger.warn("fail to delete file " + fileName + " after max " + maxRound + " rounds of try, you may delete it manually.");
+				count++;
+				if (logger.isDebugEnabled()) {
+					logger.warn("fail to delete file " + fileName + ", tried round = " + count);
 				}
 			}
-		}).start();
+		}
+		if (deleted) {
+			logger.info("Page file " + fileName + " was just deleted. " + (System.currentTimeMillis() - startTime) + "ms");
+		} else {
+			logger.warn("fail to delete file " + fileName + " after max " + maxRound + " rounds of try, you may delete it manually." + (System.currentTimeMillis() - startTime) + "ms");
+		}
 	}
 
 	@Override

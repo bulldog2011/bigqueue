@@ -10,6 +10,8 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -105,8 +107,8 @@ public class BigArrayImpl implements IBigArray {
 	// global lock for array read and write management
     final ReadWriteLock arrayReadWritelock = new ReentrantReadWriteLock();
     final Lock arrayReadLock = arrayReadWritelock.readLock();
-    final Lock arrayWriteLock = arrayReadWritelock.writeLock(); 
-	
+    final Lock arrayWriteLock = arrayReadWritelock.writeLock();
+	final ThreadPoolExecutor executor;
 	/**
 	 * 
 	 * A big array implementation supporting sequential write and random read,
@@ -146,7 +148,7 @@ public class BigArrayImpl implements IBigArray {
 		}
 		
 		DATA_PAGE_SIZE = pageSize;
-		
+		executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
 		this.commonInit();
 	}
 	
@@ -221,13 +223,13 @@ public class BigArrayImpl implements IBigArray {
 			ByteBuffer indexItemBuffer = this.getIndexItemBuffer(index);
 			long dataPageIndex = indexItemBuffer.getLong();
 
-            if (indexPageIndex > 0L) {
-                this.indexPageFactory.deletePagesBeforePageIndex(indexPageIndex);
-            }
-            if (dataPageIndex > 0L) {
-                this.dataPageFactory.deletePagesBeforePageIndex(dataPageIndex);
-            }
-			
+			if (indexPageIndex > 0L) {
+				executor.submit(new DeleteWorker(this.indexPageFactory, indexPageIndex));
+			}
+			if (dataPageIndex > 0L) {
+				executor.submit(new DeleteWorker(this.dataPageFactory, dataPageIndex));
+			}
+
 			// advance the tail to index
 			this.arrayTailIndex.set(index);
 		} finally {
@@ -547,6 +549,7 @@ public class BigArrayImpl implements IBigArray {
 			if (this.dataPageFactory != null) {
 				this.dataPageFactory.releaseCachedPages();
 			}
+			executor.shutdown();
 		} finally {
 			arrayWriteLock.unlock();
 		}

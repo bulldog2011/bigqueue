@@ -14,6 +14,8 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
 
+import static org.junit.Assert.*;
+
 public class BigArrayUnitTest {
 	
 	private String testDir = TestUtil.TEST_BASE_DIR + "bigarray/unit";
