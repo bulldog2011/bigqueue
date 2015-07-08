@@ -1,20 +1,22 @@
 package com.leansoft.bigqueue;
 
-import java.io.File;
-import java.io.IOException;
-import java.math.BigInteger;
-import java.nio.ByteBuffer;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 import com.leansoft.bigqueue.page.IMappedPage;
 import com.leansoft.bigqueue.page.IMappedPageFactory;
 import com.leansoft.bigqueue.page.MappedPageFactoryImpl;
 import com.leansoft.bigqueue.utils.Calculator;
 import com.leansoft.bigqueue.utils.FileUtil;
+
+import java.io.File;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.nio.ByteBuffer;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * A big array implementation supporting sequential append and random read.
@@ -33,7 +35,7 @@ import com.leansoft.bigqueue.utils.FileUtil;
  *
  */
 public class BigArrayImpl implements IBigArray {
-	
+
 	// folder name for index page
 	final static String INDEX_PAGE_FOLDER = "index";
 	// folder name for data page
@@ -105,8 +107,8 @@ public class BigArrayImpl implements IBigArray {
 	// global lock for array read and write management
     final ReadWriteLock arrayReadWritelock = new ReentrantReadWriteLock();
     final Lock arrayReadLock = arrayReadWritelock.readLock();
-    final Lock arrayWriteLock = arrayReadWritelock.writeLock(); 
-	
+    final Lock arrayWriteLock = arrayReadWritelock.writeLock();
+	final ThreadPoolExecutor executor;
 	/**
 	 * 
 	 * A big array implementation supporting sequential write and random read,
@@ -146,7 +148,7 @@ public class BigArrayImpl implements IBigArray {
 		}
 		
 		DATA_PAGE_SIZE = pageSize;
-		
+		executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
 		this.commonInit();
 	}
 	
@@ -189,33 +191,52 @@ public class BigArrayImpl implements IBigArray {
 			arrayWriteLock.unlock();
 		}
 	}
-	
+
+	private class DeleteWorker implements Runnable {
+		private final IMappedPageFactory pageFactory;
+		private final long pageIndex;
+
+		public DeleteWorker(IMappedPageFactory pageFactory, long pageIndex) {
+			this.pageFactory = pageFactory;
+			this.pageIndex = pageIndex;
+		}
+
+		@Override
+		public void run() {
+			try {
+				this.pageFactory.deletePagesBeforePageIndex(pageIndex);
+			} catch (IOException e) {
+				//
+			}
+		}
+	}
+
 	@Override
 	public void removeBeforeIndex(long index) throws IOException {
-    try {
-      arrayWriteLock.lock();
+		try {
+			arrayWriteLock.lock();
 
-      validateIndex(index);
+			validateIndex(index);
 
-      long indexPageIndex = Calculator.div(index, INDEX_ITEMS_PER_PAGE_BITS);
+			long indexPageIndex = Calculator.div(index, INDEX_ITEMS_PER_PAGE_BITS);
 
-      ByteBuffer indexItemBuffer = this.getIndexItemBuffer(index);
-      long dataPageIndex = indexItemBuffer.getLong();
+			ByteBuffer indexItemBuffer = this.getIndexItemBuffer(index);
+			long dataPageIndex = indexItemBuffer.getLong();
 
-      if (indexPageIndex > 0L) {
-          this.indexPageFactory.deletePagesBeforePageIndex(indexPageIndex);
-      }
-      if (dataPageIndex > 0L) {
-          this.dataPageFactory.deletePagesBeforePageIndex(dataPageIndex);
-      }
+			if (indexPageIndex > 0L) {
+				executor.submit(new DeleteWorker(this.indexPageFactory, indexPageIndex));
+			}
+			if (dataPageIndex > 0L) {
+				executor.submit(new DeleteWorker(this.dataPageFactory, dataPageIndex));
+			}
 
-      // advance the tail to index
-      this.arrayTailIndex.set(index);
-    } finally {
-      arrayWriteLock.unlock();
-    }
+			// advance the tail to index
+			this.arrayTailIndex.set(index);
+		} finally {
+			arrayWriteLock.unlock();
+		}
 	}
-	
+
 
 
 	@Override
@@ -528,6 +549,7 @@ public class BigArrayImpl implements IBigArray {
 			if (this.dataPageFactory != null) {
 				this.dataPageFactory.releaseCachedPages();
 			}
+			executor.shutdown();
 		} finally {
 			arrayWriteLock.unlock();
 		}

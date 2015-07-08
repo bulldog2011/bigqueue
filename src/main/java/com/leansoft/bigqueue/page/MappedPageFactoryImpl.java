@@ -1,22 +1,17 @@
 package com.leansoft.bigqueue.page;
 
+import com.leansoft.bigqueue.cache.ILRUCache;
+import com.leansoft.bigqueue.cache.LRUCacheImpl;
+import com.leansoft.bigqueue.utils.FileUtil;
+import org.apache.log4j.Logger;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-
-import org.apache.log4j.Logger;
-
-import com.leansoft.bigqueue.cache.ILRUCache;
-import com.leansoft.bigqueue.cache.LRUCacheImpl;
-import com.leansoft.bigqueue.utils.FileUtil;
+import java.nio.file.Files;
+import java.util.*;
 
 import static java.nio.channels.FileChannel.MapMode.READ_WRITE;
 
@@ -163,16 +158,16 @@ public class MappedPageFactoryImpl implements IMappedPageFactory {
 	 */
 	@Override
 	public void deletePage(long index) throws IOException {
+		final long startTime = System.currentTimeMillis();
 		// remove the page from cache first
 		cache.remove(index);
-		String fileName = this.getFileNameByIndex(index);
+		final String fileName = this.getFileNameByIndex(index);
 		int count = 0;
 		int maxRound = 10;
 		boolean deleted = false;
 		while(count < maxRound) {
 			try {
-				FileUtil.deleteFile(new File(fileName));
-				deleted = true;
+				deleted = Files.deleteIfExists(new File(fileName).toPath());;
 				break;
 			} catch (IllegalStateException ex) {
 				try {
@@ -186,9 +181,9 @@ public class MappedPageFactoryImpl implements IMappedPageFactory {
 			}
 		}
 		if (deleted) {
-			logger.info("Page file " + fileName + " was just deleted.");
+			logger.info("Page file " + fileName + " was just deleted. " + (System.currentTimeMillis() - startTime) + "ms");
 		} else {
-			logger.warn("fail to delete file " + fileName + " after max " + maxRound + " rounds of try, you may delete it manually.");
+			logger.warn("fail to delete file " + fileName + " after max " + maxRound + " rounds of try, you may delete it manually." + (System.currentTimeMillis() - startTime) + "ms");
 		}
 	}
 

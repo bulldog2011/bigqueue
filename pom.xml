@@ -4,11 +4,32 @@
 
     <groupId>com.leansoft</groupId>
     <artifactId>bigqueue</artifactId>
-    <version>0.7.1-SNAPSHOT</version>
+    <version>0.7.2-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>bigqueue</name>
     <url>https://github.com/bulldog2011/bigqueue</url>
+
+    <profiles>
+        <profile>
+            <id>pre-JDK8</id>
+            <activation>
+                <jdk>[,1.8)</jdk>
+            </activation>
+            <properties>
+                <javadoc.additionalparam></javadoc.additionalparam>
+            </properties>
+        </profile>
+        <profile>
+            <id>post-JDK8</id>
+            <activation>
+                <jdk>[1.8,)</jdk>
+            </activation>
+            <properties>
+                <javadoc.additionalparam>-Xdoclint:none</javadoc.additionalparam>
+            </properties>
+        </profile>
+    </profiles>
 
     <description>Light, fast and persistent queue.</description>
     <scm>
@@ -37,14 +58,14 @@
 
     <distributionManagement>
         <repository>
-            <id>github.release.repo</id>
-            <name>Release Repository</name>
-            <url>file:///dev/bulldog-repo/repo/releases</url>
+            <id>daum</id>
+            <name>Daum Repository</name>
+            <url>http://maven.daumcorp.com/content/repositories/daum</url>
         </repository>
         <snapshotRepository>
-            <id>github.snapshot.repo</id>
-            <name>Snapshot Repository</name>
-            <url>file:///dev/bulldog-repo/repo/snapshots</url>
+            <id>daum-snapshots</id>
+            <name>Daum Snapshot Repository</name>
+            <url>http://maven.daumcorp.com/content/repositories/daum-snapshots</url>
         </snapshotRepository>
     </distributionManagement>
 
@@ -134,7 +155,6 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <configuration>
                     <source>1.6</source>
-                    <target>1.6</target>
                     <encoding>UTF-8</encoding>
                     <links>
                         <link>http://docs.oracle.com/javase/6/docs/api/</link>
