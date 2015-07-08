@@ -158,13 +158,13 @@ public class MappedPageFactoryImpl implements IMappedPageFactory {
 	 */
 	@Override
 	public void deletePage(long index) throws IOException {
+		final long startTime = System.currentTimeMillis();
 		// remove the page from cache first
 		cache.remove(index);
 		final String fileName = this.getFileNameByIndex(index);
 		int count = 0;
 		int maxRound = 10;
 		boolean deleted = false;
-		final long startTime = System.currentTimeMillis();
 		while(count < maxRound) {
 			try {
 				deleted = Files.deleteIfExists(new File(fileName).toPath());;
