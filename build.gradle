@@ -1,0 +1,191 @@
+///////////////////////////////////////////////////////////////////////////////////////
+//
+//                 Gradle Template Summary
+//
+//   Frequently Used Command:
+//      [ gradle ]          Default task. same with 'gradle build'.
+//      [ gradle build ]    Compile/test your code, and create a war file containing your main classes and resources.
+//      [ gradle release ]  Release war file, generate branch info and make a tag
+//
+//
+////////////////////////////////////////////////////////////////////////////////////////
+
+//Definition apply plugin
+apply plugin: 'idea'
+apply plugin: 'java'
+apply plugin: 'maven'
+
+//--------------------------------- Based setting  for current project ---------------------------------
+
+// Definition sourceCompatibility and targetCompatibility.
+sourceCompatibility = JavaVersion.VERSION_1_7
+targetCompatibility = JavaVersion.VERSION_1_7
+
+buildscript {
+    ext {
+        MODULE                      = "bigqueue"
+        MAVEN_GROUP_ID              = "com.leansoft"
+        MAVEN_ARTIFACT_ID           = "bigqueue"
+        MAVEN_VERSION               = "0.7.2"
+    }
+
+    repositories {
+        maven {
+            credentials {
+                username MAVEN_REPO_USERNAME
+                password MAVEN_REPO_PASSWORD
+            }
+            url REPOSITORRY_URL
+        }
+    }
+
+    configurations.all {
+        resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+    }
+}
+
+// Access maven center.
+repositories {
+    maven {
+        credentials {
+            username MAVEN_REPO_USERNAME
+            password MAVEN_REPO_PASSWORD
+        }
+        url REPOSITORRY_URL
+    }
+}
+
+
+// Definition source which should include.
+sourceSets {
+    main {
+        java {
+            srcDir 'src/main/java'
+        }
+        resources {
+        }
+    }
+    test {
+        java {
+            srcDir 'test/java'
+        }
+        resources {
+        }
+    }
+    unitTest {
+        java {
+            srcDir 'test/unit'
+        }
+        compileClasspath = sourceSets.main.output + configurations.testRuntime
+        runtimeClasspath = output + compileClasspath
+    }
+}
+
+// Definition rule which resource should be include.
+processResources {
+    from ('src/main/java')
+    exclude ('**/*.java')
+}
+
+//--------------------------------- Dependencies definition ---------------------------------
+
+dependencies {
+
+    compile(
+            'log4j:log4j:1.2.16',
+            'junit:junit:4.10'
+    )
+
+    runtime(
+    )
+
+    // All the package definition that need to ignore.
+    configurations {
+    }
+
+    // Include non maven standard layout file into war
+    testCompile (
+    )
+
+}
+
+// Define manifest
+ext.sharedManifest = manifest {
+    attributes(
+            'Modlue': "${MODULE}",
+            'Implementation-Title': "${project.name}",
+            'Built-Date': new Date().getDateTimeString(),
+            'Built-With': "gradle-${project.getGradle().getGradleVersion()}, groovy-${GroovySystem.getVersion()}",
+            'Created-By': 'Java ' + System.getProperty('java.version') + ' (' + System.getProperty('java.vendor') + ')'
+    )
+}
+
+
+//--------------------------------- Specific Tasks ---------------------------------
+/*
+*  Override jar task addition attributes
+*/
+jar {
+    manifest = project.manifest {
+        from sharedManifest
+    }
+}
+
+defaultTasks 'clean','test','jar'
+
+task build (overwrite: true ) {
+    dependsOn = ['clean','test','jar']
+
+    test.mustRunAfter clean
+    jar.mustRunAfter test
+}
+
+task devbuild {
+    dependsOn = ['clean','jar']
+
+    jar.mustRunAfter clean
+}
+
+//Define the test task
+test {
+    ignoreFailures = true
+    reports.html.destination = file("$buildDir/test-reports")
+}
+
+task upload {
+    dependsOn = ['clean','uploadArchives']
+    uploadArchives.mustRunAfter clean
+}
+
+//--------------------------------- Inactive Tasks ---------------------------------
+
+/* Generate IDEA project files automatically, includes: *.ipr,  *.iml,  *.iws
+*  Usage: gradle idea
+*/
+
+
+/* Clean IDEA project files automatically, includes: *.ipr,  *.iml,  *.iws
+*  Usage: gradle cleanIdea idea
+*/
+
+/* Apply jetty plugin, it will deploy war into container
+*  Usage: gradle jettyRunWar
+*/
+
+
+/* Generate standard layout for Java project
+*  Usage: gradle createJavaProject
+*/
+task createJavaProject << {
+    sourceSets*.java.srcDirs*.each { it.mkdirs() }
+    sourceSets*.resources.srcDirs*.each { it.mkdirs()}
+}
+
+
+/* Generate standard layout for Web project
+*  Usage: gradle createWebProject
+*/
+task createWebProject(dependsOn: 'createJavaProject') << {
+    def webAppDir = file("$webAppDirName")
+    webAppDir.mkdirs()
+}
