@@ -232,7 +232,18 @@ public class MappedPageFactoryImpl implements IMappedPageFactory {
 		}
 	}
 
-	@Override
+    @Override
+    public void deletePagesBeforePageIndex(long pageIndex) throws IOException {
+        Set<Long> indexSet = this.getExistingBackFileIndexSet();
+        for (Long index : indexSet) {
+            if (index < pageIndex) {
+                this.deletePage(index);
+            }
+        }
+    }
+
+
+    @Override
 	public Set<Long> getExistingBackFileIndexSet() {
 		Set<Long> indexSet = new HashSet<Long>();
 		File[] pageFiles = this.pageDirFile.listFiles();

@@ -382,6 +382,58 @@ public class BigArrayUnitTest {
 		
 		assertTrue(9 * 64 * 1024 * 1024 == bigArray.getBackFileSize());
 	}
+
+    @Rule
+    public TemporaryFolder tempDir = new TemporaryFolder();
+
+    @Test
+    public void testRemoveBeforeIndexDataCorruption() throws IOException, InterruptedException {
+        bigArray = new BigArrayImpl(tempDir.newFolder().getAbsolutePath(), "data_corruption", BigArrayImpl.DEFAULT_DATA_PAGE_SIZE);
+
+        Executors.newScheduledThreadPool(1).scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    bigArray.limitBackFileSize(500 * 1024 * 1024);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, 100, 100, TimeUnit.MILLISECONDS);
+
+        final int msgSize = 4096;
+        final long msgCount = 2L * 1024L * 1024L * 1024L / msgSize;
+
+        System.out.println("msgCount: " + msgCount);
+        for (int i = 0; i < msgCount; ++i) {
+            byte[] bytes = new byte[msgSize];
+            for (int j = 0; j < msgSize; ++j) {
+                bytes[j] = 'a';
+            }
+            bigArray.append(bytes);
+        }
+
+        int count = 0;
+        for (long i = bigArray.getTailIndex(); i < bigArray.getHeadIndex(); ++i) {
+            byte[] bytes = null;
+            try {
+                bytes = bigArray.get(i);
+            } catch (IndexOutOfBoundsException e) {
+                System.out.println(i + " is reset to " + bigArray.getTailIndex());
+                i = bigArray.getTailIndex();
+                continue; // reset
+            }
+            for (int j = 0; j < msgSize; ++j) {
+                assertEquals(bytes[j], 'a');
+            }
+            ++count;
+            if (i % 10000 == 0) {
+                Thread.yield();
+            }
+        }
+
+        System.out.println(count);
+    }
 	
 	@After
 	public void clean() throws IOException {
