@@ -86,7 +86,9 @@ public interface IMappedPageFactory {
 	 * @return a set of indexes
 	 */
 	Set<Long> getPageIndexSetBefore(long timestamp);
-	
+
+    Set<Long> getPageIndexSetAfter(long timestamp);
+
 	/**
 	 * Delete all pages with last modified timestamp before the specific timestamp.
 	 * 
@@ -101,7 +103,9 @@ public interface IMappedPageFactory {
 	 * @param index page index
 	 */
 	long getPageFileLastModifiedTime(long index);
-	
+
+	long getFirstPageIndexAfter(long timestamp);
+
 	/**
 	 * Get index of a page file with last modified timestamp closest to specific timestamp.
 	 * 
