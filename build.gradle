@@ -26,7 +26,7 @@ buildscript {
         MODULE                      = "bigqueue"
         MAVEN_GROUP_ID              = "com.leansoft"
         MAVEN_ARTIFACT_ID           = "bigqueue"
-        MAVEN_VERSION               = "0.7.2"
+        MAVEN_VERSION               = "0.7.4"
     }
 
     repositories {
