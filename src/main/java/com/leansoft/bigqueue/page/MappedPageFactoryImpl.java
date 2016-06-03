@@ -86,10 +86,10 @@ public class MappedPageFactoryImpl implements IMappedPageFactory {
 							MappedByteBuffer mbb = channel.map(READ_WRITE, 0, this.pageSize);
 							mpi = new MappedPageImpl(mbb, fileName, index);
 							cache.put(index, mpi, ttl);
-							if (logger.isDebugEnabled()) {
-								logger.debug("Mapped page for " + fileName + " was just created and cached.");
-							}
-						} finally {
+                            logger.info("Mapped page for " + fileName + " was just created and cached.");
+
+
+                        } finally {
 							if (channel != null) channel.close();
 							if (raf != null) raf.close();
 						}
@@ -209,7 +209,25 @@ public class MappedPageFactoryImpl implements IMappedPageFactory {
 		}
 		return beforeIndexSet;
 	}
-	
+
+    @Override
+    public Set<Long> getPageIndexSetAfter(long timestamp) {
+        Set<Long> afterIndexSet = new HashSet<Long>();
+        File[] pageFiles = this.pageDirFile.listFiles();
+        if (pageFiles != null && pageFiles.length > 0) {
+            for (File pageFile : pageFiles) {
+                if (pageFile.lastModified() >= timestamp) {
+                    String fileName = pageFile.getName();
+                    if (fileName.endsWith(PAGE_FILE_SUFFIX)) {
+                        long index = this.getIndexByFileName(fileName);
+                        afterIndexSet.add(index);
+                    }
+                }
+            }
+        }
+        return afterIndexSet;
+    }
+
 	private long getIndexByFileName(String fileName) {
 		int beginIndex = fileName.lastIndexOf('-');
 		beginIndex += 1;
@@ -227,9 +245,8 @@ public class MappedPageFactoryImpl implements IMappedPageFactory {
 	public void deletePagesBefore(long timestamp) throws IOException {
 		Set<Long> indexSet = this.getPageIndexSetBefore(timestamp);
 		this.deletePages(indexSet);
-		if (logger.isDebugEnabled()) {
-			logger.debug("All page files in dir [" + this.pageDir + "], before [" + timestamp + "] have been deleted.");
-		}
+        logger.info(String.format("All page files in [%s] before [%d] are deleted. Deleted indices [%s]",
+                this.pageDir, timestamp, indexSet));
 	}
 
 	@Override
@@ -267,6 +284,27 @@ public class MappedPageFactoryImpl implements IMappedPageFactory {
 		}
 		return pageFile.lastModified();
 	}
+
+    @Override
+	public long getFirstPageIndexAfter(long timestamp) {
+        Set<Long> afterIndexSet = getPageIndexSetAfter(timestamp);
+        if (afterIndexSet.size() == 0) return -1L;
+        TreeSet<Long> sortedIndexSet = new TreeSet<Long>(afterIndexSet);
+        Long smallestIndex = sortedIndexSet.first();
+        if (!sortedIndexSet.contains(Long.MAX_VALUE)) {
+            return smallestIndex;
+        }
+        else {
+            Long max = Long.MAX_VALUE;
+            Long next = Long.MAX_VALUE - 1;
+            while (sortedIndexSet.contains(next)) {
+                max = next;
+                next --;
+            }
+
+            return max;
+        }
+    }
 
 	@Override
 	public long getFirstPageIndexBefore(long timestamp) {

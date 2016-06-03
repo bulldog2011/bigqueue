@@ -15,6 +15,7 @@ import com.leansoft.bigqueue.page.IMappedPageFactory;
 import com.leansoft.bigqueue.page.MappedPageFactoryImpl;
 import com.leansoft.bigqueue.utils.Calculator;
 import com.leansoft.bigqueue.utils.FileUtil;
+import org.apache.log4j.Logger;
 
 /**
  * A big array implementation supporting sequential append and random read.
@@ -33,31 +34,37 @@ import com.leansoft.bigqueue.utils.FileUtil;
  *
  */
 public class BigArrayImpl implements IBigArray {
-	
-	// folder name for index page
+
+    private final static Logger logger = Logger.getLogger(BigArrayImpl.class);
+
+    // folder name for index page
 	final static String INDEX_PAGE_FOLDER = "index";
 	// folder name for data page
 	final static String DATA_PAGE_FOLDER = "data";
 	// folder name for meta data page
 	final static String META_DATA_PAGE_FOLDER = "meta_data";
-	
+
 	// 2 ^ 20 = 1024 * 1024
-	final static int INDEX_ITEMS_PER_PAGE_BITS = 20; // 1024 * 1024
-	// number of items per page
-	final static int INDEX_ITEMS_PER_PAGE = 1 << INDEX_ITEMS_PER_PAGE_BITS;
+    final static int DEFAULT_INDEX_ITEMS_PER_PAGE_BITS = 20;
+
 	// 2 ^ 5 = 32
 	final static int INDEX_ITEM_LENGTH_BITS = 5;
-	// length in bytes of an index item
-	final static int INDEX_ITEM_LENGTH = 1 << INDEX_ITEM_LENGTH_BITS; 
-	// size in bytes of an index page
-	final static int INDEX_PAGE_SIZE = INDEX_ITEM_LENGTH * INDEX_ITEMS_PER_PAGE; 
-	
+    // length in bytes of an index item
+	final static int INDEX_ITEM_LENGTH = 1 << INDEX_ITEM_LENGTH_BITS;
+
 	// size in bytes of a data page
 	final int DATA_PAGE_SIZE;
-	
-	// default size in bytes of a data page
+
+    final  int INDEX_ITEMS_PER_PAGE_BITS; // item count = 2 << INDEX_ITEMS_PER_PAGE_BITS
+    // number of items per page
+    final int INDEX_ITEMS_PER_PAGE;
+    // size in bytes of an index page
+    public final int INDEX_PAGE_SIZE ;
+
+
+    // default size in bytes of a data page
 	public final static int DEFAULT_DATA_PAGE_SIZE = 128 * 1024 * 1024;
-	// minimum size in bytes of a data page
+    // minimum size in bytes of a data page
 	public final static int MINIMUM_DATA_PAGE_SIZE = 32 * 1024 * 1024;
 	// seconds, time to live for index page cached in memory
 	final static int INDEX_PAGE_CACHE_TTL = 1000;
@@ -119,6 +126,18 @@ public class BigArrayImpl implements IBigArray {
 	public BigArrayImpl(String arrayDir, String arrayName) throws IOException {
 		this(arrayDir, arrayName, DEFAULT_DATA_PAGE_SIZE);
 	}
+
+    /**
+     * A big array implementation supporting sequential write and random read
+     * use default index size see @{link #DEFAULT_INDEX_ITEMS_PER_PAGE_BITS}
+     * @param arrayDir
+     * @param arrayName
+     * @param pageSize
+     * @throws IOException
+     */
+    public BigArrayImpl(String arrayDir, String arrayName, int pageSize) throws IOException {
+        this(arrayDir, arrayName, pageSize, DEFAULT_INDEX_ITEMS_PER_PAGE_BITS);
+    }
 	
 	/**
 	 * A big array implementation supporting sequential write and random read.
@@ -126,9 +145,10 @@ public class BigArrayImpl implements IBigArray {
 	 * @param arrayDir directory for array data store
 	 * @param arrayName the name of the array, will be appended as last part of the array directory
 	 * @param pageSize the back data file size per page in bytes, see minimum allowed {@link #MINIMUM_DATA_PAGE_SIZE}.
+     * @param indexSizeInBits the count of items can one index map (use the bits)
 	 * @throws IOException exception throws during array initialization
 	 */
-	public BigArrayImpl(String arrayDir, String arrayName, int pageSize) throws IOException {
+	public BigArrayImpl(String arrayDir, String arrayName, int pageSize, int indexSizeInBits) throws IOException {
 		arrayDirectory = arrayDir;
 		if (!arrayDirectory.endsWith(File.separator)) {
 			arrayDirectory += File.separator;
@@ -146,9 +166,15 @@ public class BigArrayImpl implements IBigArray {
 		}
 		
 		DATA_PAGE_SIZE = pageSize;
-		
+
+        this.INDEX_ITEMS_PER_PAGE_BITS = indexSizeInBits;
+        INDEX_ITEMS_PER_PAGE = 1 << INDEX_ITEMS_PER_PAGE_BITS;
+        INDEX_PAGE_SIZE = INDEX_ITEM_LENGTH * INDEX_ITEMS_PER_PAGE;
+
 		this.commonInit();
 	}
+
+
 	
 	public String getArrayDirectory() {
 		return this.arrayDirectory;
@@ -204,7 +230,10 @@ public class BigArrayImpl implements IBigArray {
 			
 			long toRemoveIndexPageTimestamp = this.indexPageFactory.getPageFileLastModifiedTime(indexPageIndex);
 			long toRemoveDataPageItemstamp = this.dataPageFactory.getPageFileLastModifiedTime(dataPageIndex);
-			
+
+            logger.info(String.format("bigqueue remove pages: indexPageIndex=%d, lastModifyTs=%d, dataPageIndex=%d, lastModifyTs=%d",
+                   indexPageIndex, toRemoveIndexPageTimestamp, dataPageIndex, toRemoveDataPageItemstamp ));
+
 			if (toRemoveIndexPageTimestamp > 0L) { 
 				this.indexPageFactory.deletePagesBefore(toRemoveIndexPageTimestamp);
 			}
@@ -225,22 +254,26 @@ public class BigArrayImpl implements IBigArray {
 	public void removeBefore(long timestamp) throws IOException {
 		try {
 			arrayWriteLock.lock();
-			long firstIndexPageIndex = this.indexPageFactory.getFirstPageIndexBefore(timestamp);
-			if (firstIndexPageIndex >= 0) {
+            long removeBeforeIndex = this.indexPageFactory.getFirstPageIndexAfter(timestamp);
+            if (removeBeforeIndex == -1L) {
+                removeBeforeIndex = this.indexPageFactory.getFirstPageIndexBefore(timestamp);
+            }
+			if (removeBeforeIndex >= 0) {
 //				long nextIndexPageIndex = firstIndexPageIndex;
 //				if (nextIndexPageIndex == Long.MAX_VALUE) { //wrap
 //					nextIndexPageIndex = 0L;
 //				} else {
 //					nextIndexPageIndex++;
 //				}
-				long toRemoveBeforeIndex = Calculator.mul(firstIndexPageIndex, INDEX_ITEMS_PER_PAGE_BITS);
+				long toRemoveBeforeIndex = Calculator.mul(removeBeforeIndex, INDEX_ITEMS_PER_PAGE_BITS);
+                logger.info(String.format("Remove before: indexBefore=%d, indexBeforeTs=%d", removeBeforeIndex, toRemoveBeforeIndex));
 				removeBeforeIndex(toRemoveBeforeIndex);
 			}
 		} catch (IndexOutOfBoundsException ex) {
 			// ignore
 		} finally {
 			arrayWriteLock.unlock();
-		}	
+        }
 	}
 	
 	// find out array head/tail from the meta data
@@ -691,4 +724,5 @@ public class BigArrayImpl implements IBigArray {
 	private long _getBackFileSize() throws IOException {	
 		return this.indexPageFactory.getBackPageFileSize() + this.dataPageFactory.getBackPageFileSize();
 	}
+
 }
