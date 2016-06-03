@@ -168,7 +168,7 @@ public class BigArrayImpl implements IBigArray {
 		DATA_PAGE_SIZE = pageSize;
 
         this.INDEX_ITEMS_PER_PAGE_BITS = indexSizeInBits;
-        INDEX_ITEMS_PER_PAGE = 1 << DEFAULT_INDEX_ITEMS_PER_PAGE_BITS;
+        INDEX_ITEMS_PER_PAGE = 1 << INDEX_ITEMS_PER_PAGE_BITS;
         INDEX_PAGE_SIZE = INDEX_ITEM_LENGTH * INDEX_ITEMS_PER_PAGE;
 
 		this.commonInit();
