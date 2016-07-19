@@ -231,7 +231,7 @@ public class BigArrayImpl implements IBigArray {
 			long toRemoveIndexPageTimestamp = this.indexPageFactory.getPageFileLastModifiedTime(indexPageIndex);
 			long toRemoveDataPageItemstamp = this.dataPageFactory.getPageFileLastModifiedTime(dataPageIndex);
 
-            logger.info(String.format("bigqueue remove pages: indexPageIndex=%d, lastModifyTs=%d, dataPageIndex=%d, lastModifyTs=%d",
+            logger.warn(String.format("bigqueue remove pages: indexPageIndex=%d, lastModifyTs=%d, dataPageIndex=%d, lastModifyTs=%d",
                    indexPageIndex, toRemoveIndexPageTimestamp, dataPageIndex, toRemoveDataPageItemstamp ));
 
 			if (toRemoveIndexPageTimestamp > 0L) { 
@@ -266,7 +266,7 @@ public class BigArrayImpl implements IBigArray {
 //					nextIndexPageIndex++;
 //				}
 				long toRemoveBeforeIndex = Calculator.mul(removeBeforeIndex, INDEX_ITEMS_PER_PAGE_BITS);
-                logger.info(String.format("Remove before: indexBefore=%d, indexBeforeTs=%d", removeBeforeIndex, toRemoveBeforeIndex));
+                logger.warn(String.format("Remove before: indexBefore=%d, indexBeforeTs=%d", removeBeforeIndex, toRemoveBeforeIndex));
 				removeBeforeIndex(toRemoveBeforeIndex);
 			}
 		} catch (IndexOutOfBoundsException ex) {
@@ -358,6 +358,7 @@ public class BigArrayImpl implements IBigArray {
 				toAppendDataPage = this.dataPageFactory.acquirePage(toAppendDataPageIndex);
 				ByteBuffer toAppendDataPageBuffer = toAppendDataPage.getLocal(toAppendDataItemOffset);
 				toAppendDataPageBuffer.put(data);
+				toAppendDataPage.setLastModified(System.currentTimeMillis());
 				toAppendDataPage.setDirty(true);
 				// update to next
 				this.headDataItemOffset += data.length;
@@ -373,6 +374,8 @@ public class BigArrayImpl implements IBigArray {
 				toAppendIndexPageBuffer.putInt(data.length);
 				long currentTime = System.currentTimeMillis();
 				toAppendIndexPageBuffer.putLong(currentTime);
+
+				toAppendIndexPage.setLastModified(currentTime);
 				toAppendIndexPage.setDirty(true);
 				
 				// advance the head
