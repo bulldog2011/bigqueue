@@ -1,5 +1,6 @@
 package com.leansoft.bigqueue.page;
 
+import java.io.File;
 import java.nio.ByteBuffer;
 
 /**
@@ -46,8 +47,11 @@ public interface IMappedPage {
 	 * 
 	 * @return
 	 */
-	String getPageFile();
-	
+	String getPageFileName();
+
+	File getPageFile();
+
+	boolean setLastModified(long time);
 	/**
 	 * The index of the mapped page
 	 * 

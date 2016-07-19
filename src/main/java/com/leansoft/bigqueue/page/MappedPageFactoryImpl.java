@@ -102,7 +102,7 @@ public class MappedPageFactoryImpl implements IMappedPageFactory {
 			}
 	    } else {
 	    	if (logger.isDebugEnabled()) {
-	    		logger.debug("Hit mapped page " + mpi.getPageFile() + " in cache.");
+	    		logger.debug("Hit mapped page " + mpi.getPageFileName() + " in cache.");
 	    	}
 	    }
 	
@@ -245,7 +245,7 @@ public class MappedPageFactoryImpl implements IMappedPageFactory {
 	public void deletePagesBefore(long timestamp) throws IOException {
 		Set<Long> indexSet = this.getPageIndexSetBefore(timestamp);
 		this.deletePages(indexSet);
-        logger.info(String.format("All page files in [%s] before [%d] are deleted. Deleted indices [%s]",
+        logger.warn(String.format("All page files in [%s] before [%d] are deleted. Deleted indices [%s]",
                 this.pageDir, timestamp, indexSet));
 	}
 
