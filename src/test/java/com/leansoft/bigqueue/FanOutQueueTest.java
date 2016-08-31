@@ -224,7 +224,7 @@ public class FanOutQueueTest {
 		}
 		
 		foQueue.removeBefore(timestamp);
-		
+
 		timestamp = System.currentTimeMillis();
 		String randomString3 = TestUtil.randomString(32);
 		for(int i = 0; i < 1024 * 1024; i++) {
@@ -331,16 +331,19 @@ public class FanOutQueueTest {
 		assertTrue(6 * 32 * oneM == foQueue.getBackFileSize() );
 		
 		foQueue.limitBackFileSize(oneM * 4 * 32);
+		TestUtil.sleepQuietly(500);
 		assertEquals(2 * oneM, foQueue.size("test"));
 		assertTrue(4 * 32 * oneM == foQueue.getBackFileSize() );
 		assertEquals(randomString2, new String(foQueue.dequeue("test")));
 		
 		foQueue.limitBackFileSize(oneM * 2 * 32);
+		TestUtil.sleepQuietly(500);
 		assertEquals(1 * oneM, foQueue.size("test"));
 		assertTrue(2 * 32 * oneM == foQueue.getBackFileSize() );
 		assertEquals(randomString3, new String(foQueue.dequeue("test")));
 		
 		foQueue.limitBackFileSize(oneM * 32); // will be ignore
+		TestUtil.sleepQuietly(500);
 		assertEquals(1 * oneM - 1, foQueue.size("test"));
 		assertTrue(2 * 32 * oneM == foQueue.getBackFileSize() );
 		assertEquals(randomString3, new String(foQueue.dequeue("test")));		
