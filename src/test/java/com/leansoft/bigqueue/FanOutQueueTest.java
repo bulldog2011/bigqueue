@@ -224,7 +224,7 @@ public class FanOutQueueTest {
 		}
 		
 		foQueue.removeBefore(timestamp);
-
+		
 		timestamp = System.currentTimeMillis();
 		String randomString3 = TestUtil.randomString(32);
 		for(int i = 0; i < 1024 * 1024; i++) {
@@ -233,7 +233,7 @@ public class FanOutQueueTest {
 		
 		foQueue.removeBefore(timestamp);
 		
-		assertTrue(foQueue.size(fid) == 2 * 1024 * 1024);
+		assertTrue(foQueue.size(fid) == 9 * 128 * 1024);
 		assertEquals(randomString2, new String(foQueue.peek(fid)));
 	}
 	

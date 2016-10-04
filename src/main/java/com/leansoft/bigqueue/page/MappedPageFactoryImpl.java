@@ -286,19 +286,7 @@ public class MappedPageFactoryImpl implements IMappedPageFactory {
 		if (beforeIndexSet.size() == 0) return -1L;
 		TreeSet<Long> sortedIndexSet = new TreeSet<Long>(beforeIndexSet);
 		Long largestIndex = sortedIndexSet.last();
-		if (largestIndex != Long.MAX_VALUE) { // no wrap, just return the largest
-			return largestIndex;
-		} else { // wrapped case
-			Long next = 0L;
-			while(sortedIndexSet.contains(next)) {
-				next++;
-			}
-			if (next == 0L) {
-				return Long.MAX_VALUE;
-			} else {
-				return --next;
-			}
-		}
+		return largestIndex;
 	}
 
 	/**

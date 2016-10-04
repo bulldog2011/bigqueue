@@ -50,6 +50,15 @@ public class LRUCacheImpl<K, V extends Closeable> implements ILRUCache<K, V> {
 		map = new HashMap<K, V>();
 		ttlMap = new HashMap<K, TTLValue>();
 	}
+	
+	/**
+	 * Shutdown the internal ExecutorService,
+	 * 
+	 * Call this only after you have closed your bigqueue instance.
+	 */
+	public static void CloseExecutorService() {
+		executorService.shutdown();
+	}
 
 	public void put(K key, V value, long ttlInMilliSeconds) {
 		Collection<V> valuesToClose = null;

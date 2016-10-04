@@ -273,14 +273,14 @@ public class BigArrayUnitTest {
 		}
 		
 		long realSize = bigArray.getBackFileSize();
-		long expectedSize = BigArrayImpl.INDEX_PAGE_SIZE * 3 + bigArray.getDataPageSize() * 6;
+		long expectedSize = BigArrayImpl.INDEX_PAGE_SIZE * 23 + bigArray.getDataPageSize() * 6;
 		
 		assertTrue(expectedSize == realSize);
 		
 		bigArray.removeBeforeIndex(loop / 2);
 		TestUtil.sleepQuietly(500);
 		realSize = bigArray.getBackFileSize();
-		expectedSize = BigArrayImpl.INDEX_PAGE_SIZE * 2 + bigArray.getDataPageSize() * 4;
+		expectedSize = BigArrayImpl.INDEX_PAGE_SIZE * 12 + bigArray.getDataPageSize() * 4;
 		
 		assertTrue(expectedSize == realSize);
 		
@@ -309,22 +309,22 @@ public class BigArrayUnitTest {
 			bigArray.append(randomString.getBytes());
 		}
 		
-		bigArray.limitBackFileSize(BigArrayImpl.INDEX_PAGE_SIZE * 2 + bigArray.getDataPageSize() * 3);
-		assertTrue(bigArray.getBackFileSize() <= BigArrayImpl.INDEX_PAGE_SIZE * 2 + bigArray.getDataPageSize() * 3);
-		assertTrue(bigArray.getBackFileSize() > BigArrayImpl.INDEX_PAGE_SIZE + bigArray.getDataPageSize() * 2);
+		bigArray.limitBackFileSize(BigArrayImpl.INDEX_PAGE_SIZE * 12 + bigArray.getDataPageSize() * 3);
+		assertTrue(bigArray.getBackFileSize() <= BigArrayImpl.INDEX_PAGE_SIZE * 12 + bigArray.getDataPageSize() * 3);
+		assertTrue(bigArray.getBackFileSize() > BigArrayImpl.INDEX_PAGE_SIZE * 11 + bigArray.getDataPageSize() * 2);
 		long lastTailIndex = bigArray.getTailIndex();
 		assertTrue(lastTailIndex > 0);
 		assertTrue(bigArray.getHeadIndex() == loop + 1);
 		
-		bigArray.limitBackFileSize(BigArrayImpl.INDEX_PAGE_SIZE + bigArray.getDataPageSize() * 2);
-		assertTrue(bigArray.getBackFileSize() <= BigArrayImpl.INDEX_PAGE_SIZE + bigArray.getDataPageSize() * 2);
-		assertTrue(bigArray.getBackFileSize() > BigArrayImpl.INDEX_PAGE_SIZE + bigArray.getDataPageSize());
+		bigArray.limitBackFileSize(BigArrayImpl.INDEX_PAGE_SIZE * 8 + bigArray.getDataPageSize() * 2);
+		assertTrue(bigArray.getBackFileSize() <= BigArrayImpl.INDEX_PAGE_SIZE * 8 + bigArray.getDataPageSize() * 2);
+		assertTrue(bigArray.getBackFileSize() > BigArrayImpl.INDEX_PAGE_SIZE * 7 + bigArray.getDataPageSize());
 		assertTrue(bigArray.getTailIndex() > lastTailIndex);
 		lastTailIndex = bigArray.getTailIndex();
 		assertTrue(bigArray.getHeadIndex() == loop + 1);
 		
-		bigArray.limitBackFileSize(BigArrayImpl.INDEX_PAGE_SIZE + bigArray.getDataPageSize());
-		assertTrue(bigArray.getBackFileSize() == BigArrayImpl.INDEX_PAGE_SIZE + bigArray.getDataPageSize());
+		bigArray.limitBackFileSize(BigArrayImpl.INDEX_PAGE_SIZE * 4 + bigArray.getDataPageSize());
+		assertTrue(bigArray.getBackFileSize() == BigArrayImpl.INDEX_PAGE_SIZE * 3 + bigArray.getDataPageSize());
 		assertTrue(bigArray.getTailIndex() > lastTailIndex);
 		lastTailIndex = bigArray.getTailIndex();
 		assertTrue(bigArray.getHeadIndex() == loop + 1);

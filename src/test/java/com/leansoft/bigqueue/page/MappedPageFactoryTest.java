@@ -152,20 +152,6 @@ public class MappedPageFactoryTest {
 		}
 		
 		mappedPageFactory.deleteAllPages();
-		
-		// test wrapped case
-		mappedPageFactory.acquirePage(Long.MAX_VALUE - 1);
-		mappedPageFactory.acquirePage(Long.MAX_VALUE);
-		long index = mappedPageFactory.getFirstPageIndexBefore(System.currentTimeMillis() + 1);
-		assertTrue(index == Long.MAX_VALUE);
-		
-		mappedPageFactory.acquirePage(0);
-		index = mappedPageFactory.getFirstPageIndexBefore(System.currentTimeMillis() + 1);
-		assertTrue(index == 0);
-		
-		mappedPageFactory.acquirePage(1);
-		index = mappedPageFactory.getFirstPageIndexBefore(System.currentTimeMillis() + 1);
-		assertTrue(index == 1);
 	}
 	
 	@After

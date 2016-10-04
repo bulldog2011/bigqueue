@@ -41,8 +41,8 @@ public class BigArrayImpl implements IBigArray {
 	// folder name for meta data page
 	final static String META_DATA_PAGE_FOLDER = "meta_data";
 	
-	// 2 ^ 20 = 1024 * 1024
-	final static int INDEX_ITEMS_PER_PAGE_BITS = 20; // 1024 * 1024
+	// 2 ^ 17 = 1024 * 128
+	final static int INDEX_ITEMS_PER_PAGE_BITS = 17; // 1024 * 128
 	// number of items per page
 	final static int INDEX_ITEMS_PER_PAGE = 1 << INDEX_ITEMS_PER_PAGE_BITS;
 	// 2 ^ 5 = 32
@@ -262,9 +262,6 @@ public class BigArrayImpl implements IBigArray {
 			long previousIndexPageIndex = -1;
 			try {
 				long previousIndex = this.arrayHeadIndex.get() - 1;
-				if (previousIndex < 0) {
-					previousIndex = Long.MAX_VALUE; // wrap
-				}
 				previousIndexPageIndex = Calculator.div(previousIndex, INDEX_ITEMS_PER_PAGE_BITS); // shift optimization
 				previousIndexPage = this.indexPageFactory.acquirePage(previousIndexPageIndex);
 				int previousIndexPageOffset = (int) (Calculator.mul(Calculator.mod(previousIndex, INDEX_ITEMS_PER_PAGE_BITS), INDEX_ITEM_LENGTH_BITS));
@@ -298,18 +295,10 @@ public class BigArrayImpl implements IBigArray {
 			
 			try {
 				appendLock.lock(); // only one thread can append
-			
-				if (this.isFull()) { // end of the world check:)
-					throw new IOException("ring space of java long type used up, the end of the world!!!");
-				}
 				
 				// prepare the data pointer
 				if (this.headDataItemOffset + data.length > DATA_PAGE_SIZE) { // not enough space
-					if (this.headDataPageIndex == Long.MAX_VALUE) {
-						this.headDataPageIndex = 0L; // wrap
-					} else {
-						this.headDataPageIndex++;
-					}
+					this.headDataPageIndex++;
 					this.headDataItemOffset = 0;
 				}
 				
@@ -464,11 +453,7 @@ public class BigArrayImpl implements IBigArray {
 	public long size() {
 		try {
 			arrayReadLock.lock();
-			if (this.arrayTailIndex.get() <= this.arrayHeadIndex.get()) {
-				return (this.arrayHeadIndex.get() - this.arrayTailIndex.get());
-			} else {
-				return Long.MAX_VALUE - this.arrayTailIndex.get() + 1 + this.arrayHeadIndex.get();
-			}
+			return (this.arrayHeadIndex.get() - this.arrayTailIndex.get());
 		} finally {
 			arrayReadLock.unlock();
 		}
@@ -504,15 +489,9 @@ public class BigArrayImpl implements IBigArray {
 
 	@Override
 	public boolean isFull() {
-		try {
-			arrayReadLock.lock();
-			long currentIndex = this.arrayHeadIndex.get();
-			
-			long nextIndex = currentIndex == Long.MAX_VALUE ? 0 : currentIndex + 1;
-			return nextIndex == this.arrayTailIndex.get();
-		} finally {
-			arrayReadLock.unlock();
-		}
+		// full means the java long space has been used up,
+		// the end of the world:)
+		return false;
 	}
 
 	@Override
@@ -645,11 +624,8 @@ public class BigArrayImpl implements IBigArray {
 				totalLength += this.getDataItemLength(tailIndex);
 				if (totalLength > toTruncateSize) break;
 				
-				if (tailIndex == Long.MAX_VALUE) {
-					tailIndex = 0;
-				} else {
-					tailIndex++;
-				}
+				tailIndex++;
+				
 				if (Calculator.mod(tailIndex, INDEX_ITEMS_PER_PAGE_BITS) == 0) { // take index page into account
 					totalLength += INDEX_PAGE_SIZE;
 				}
