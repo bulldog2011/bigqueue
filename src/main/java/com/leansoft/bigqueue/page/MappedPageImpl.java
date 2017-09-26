@@ -7,18 +7,25 @@ import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 
+import com.leansoft.bigqueue.utils.BQSettings;
 import org.apache.log4j.Logger;
 
 public class MappedPageImpl implements IMappedPage, Closeable {
 	
-	private final static Logger logger = Logger.getLogger(MappedPageImpl.class);
-	
+	private static final Logger logger = Logger.getLogger(MappedPageImpl.class);
+	private static final long lastModifiedUpdateInterval = BQSettings.getLastModifiedUpdateInterval();
+
 	private ThreadLocalByteBuffer threadLocalBuffer;
 	private volatile boolean dirty = false;
 	private volatile boolean closed = false;
 	private String pageFileName;
 	private File pageFile;
 	private long index;
+
+	/**
+	 * Don't update lastModified before this variable
+	 */
+	private volatile long updateLastModifiedAfter = System.currentTimeMillis();
 	
 	public MappedPageImpl(MappedByteBuffer mbb, String pageFileName, long index) {
 		this.threadLocalBuffer = new ThreadLocalByteBuffer(mbb);
@@ -161,7 +168,13 @@ public class MappedPageImpl implements IMappedPage, Closeable {
 	}
 
 	public boolean setLastModified(long time) {
-		return this.pageFile.setLastModified(time);
+    	if (time > updateLastModifiedAfter) {
+			boolean ret = this.pageFile.setLastModified(time);
+			updateLastModifiedAfter = time + lastModifiedUpdateInterval;
+			return ret;
+		}
+
+		return true;
 	}
 
 	@Override
