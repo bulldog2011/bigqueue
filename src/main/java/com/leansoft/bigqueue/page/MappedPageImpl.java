@@ -1,26 +1,36 @@
 package com.leansoft.bigqueue.page;
 
 import java.io.Closeable;
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 
+import com.leansoft.bigqueue.utils.BQSettings;
 import org.apache.log4j.Logger;
 
 public class MappedPageImpl implements IMappedPage, Closeable {
 	
-	private final static Logger logger = Logger.getLogger(MappedPageImpl.class);
-	
+	private static final Logger logger = Logger.getLogger(MappedPageImpl.class);
+	private static final long lastModifiedUpdateInterval = BQSettings.getLastModifiedUpdateInterval();
+
 	private ThreadLocalByteBuffer threadLocalBuffer;
 	private volatile boolean dirty = false;
 	private volatile boolean closed = false;
-	private String pageFile;
+	private String pageFileName;
+	private File pageFile;
 	private long index;
+
+	/**
+	 * Don't update lastModified before this variable
+	 */
+	private volatile long updateLastModifiedAfter = System.currentTimeMillis();
 	
-	public MappedPageImpl(MappedByteBuffer mbb, String pageFile, long index) {
+	public MappedPageImpl(MappedByteBuffer mbb, String pageFileName, long index) {
 		this.threadLocalBuffer = new ThreadLocalByteBuffer(mbb);
-		this.pageFile = pageFile;
+		this.pageFileName = pageFileName;
+		this.pageFile = new File(pageFileName);
 		this.index = index;
 	}
 	
@@ -37,7 +47,7 @@ public class MappedPageImpl implements IMappedPage, Closeable {
 			
 			closed = true;
 			if (logger.isDebugEnabled()) {
-				logger.debug("Mapped page for " + this.pageFile + " was just unmapped and closed.");
+				logger.debug("Mapped page for " + this.pageFileName + " was just unmapped and closed.");
 			}
 		}
 	}
@@ -56,7 +66,7 @@ public class MappedPageImpl implements IMappedPage, Closeable {
 				srcBuf.force(); // flush the changes
 				dirty = false;
 				if (logger.isDebugEnabled()) {
-					logger.debug("Mapped page for " + this.pageFile + " was just flushed.");
+					logger.debug("Mapped page for " + this.pageFileName + " was just flushed.");
 				}
 			}
 		}
@@ -144,12 +154,27 @@ public class MappedPageImpl implements IMappedPage, Closeable {
 	}
 	
 	public String toString() {
-		return "Mapped page for " + this.pageFile + ", index = " + this.index + ".";
+		return "Mapped page for " + this.pageFileName + ", index = " + this.index + ".";
 	}
 
 	@Override
-	public String getPageFile() {
+	public String getPageFileName() {
+		return this.pageFileName;
+	}
+
+	@Override
+	public File getPageFile() {
 		return this.pageFile;
+	}
+
+	public boolean setLastModified(long time) {
+    	if (time > updateLastModifiedAfter) {
+			boolean ret = this.pageFile.setLastModified(time);
+			updateLastModifiedAfter = time + lastModifiedUpdateInterval;
+			return ret;
+		}
+
+		return true;
 	}
 
 	@Override
