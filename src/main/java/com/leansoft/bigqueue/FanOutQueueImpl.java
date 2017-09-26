@@ -46,6 +46,20 @@ public class FanOutQueueImpl implements IFanOutQueue {
 	
 	final ConcurrentMap<String, QueueFront> queueFrontMap = new ConcurrentHashMap<String, QueueFront>();
 
+    /**
+     * A big, fast and persistent queue implementation with fandout support
+     *
+     * @param queueDir  the directory to store queue data
+     * @param queueName the name of the queue, will be appended as last part of the queue directory
+     * @param pageSize the back data file size per page in bytes, see minimum allowed {@link BigArrayImpl#MINIMUM_DATA_PAGE_SIZE}
+     * @param itemCountPerIndexInBits the count of items can a index map
+     * @throws IOException exception throws if there is any IO error during queue initialization
+     */
+	public FanOutQueueImpl(String queueDir, String queueName, int pageSize, int itemCountPerIndexInBits)
+            throws IOException {
+        innerArray = new BigArrayImpl(queueDir, queueName, pageSize, itemCountPerIndexInBits);
+    }
+
 	/**
 	 * A big, fast and persistent queue implementation with fandout support.
 	 * 
@@ -56,7 +70,7 @@ public class FanOutQueueImpl implements IFanOutQueue {
 	 */
 	public FanOutQueueImpl(String queueDir, String queueName, int pageSize)
 			throws IOException {
-		innerArray = new BigArrayImpl(queueDir, queueName, pageSize);
+        this(queueDir, queueName, pageSize, BigArrayImpl.DEFAULT_INDEX_ITEMS_PER_PAGE_BITS);
 	}
 
 	/**
