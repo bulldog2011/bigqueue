@@ -177,7 +177,7 @@ public interface IFanOutQueue extends Closeable {
     /**
      * Reset the front index of a fanout queue.
      * 
-     * @param fandoutId fanout identifier
+     * @param fanoutId fanout identifier
      * @param index target index
      * @throws IOException exception thrown during the operation
      */
