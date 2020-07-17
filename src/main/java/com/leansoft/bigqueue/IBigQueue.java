@@ -119,4 +119,10 @@ public interface IBigQueue extends Closeable {
          */
         public void forEach(byte[] item) throws IOException;
     }
+
+	/**
+	 * refresh array meta data to find remote message
+	 * @since 0.7.4
+	 */
+	public void freshHead() throws IOException;
 }

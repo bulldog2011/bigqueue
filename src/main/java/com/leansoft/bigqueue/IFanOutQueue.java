@@ -115,7 +115,7 @@ public interface IFanOutQueue extends Closeable {
 	 * @param fanoutId the fanout identifier
 	 * @return total number
 	 */
-	public long size(String fanoutId) throws IOException ;
+	public long size(String fanoutId) throws IOException;
 	
 	
 	/**
@@ -212,4 +212,9 @@ public interface IFanOutQueue extends Closeable {
 	 */
 	public long getRearIndex();
 
+	/**
+	 * refresh array meta data to find remote message
+	 * @since 0.7.4
+	 */
+	public void freshHead() throws IOException;
 }
