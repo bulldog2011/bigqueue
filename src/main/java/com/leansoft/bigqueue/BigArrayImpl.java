@@ -1,5 +1,11 @@
 package com.leansoft.bigqueue;
 
+import com.leansoft.bigqueue.page.IMappedPage;
+import com.leansoft.bigqueue.page.IMappedPageFactory;
+import com.leansoft.bigqueue.page.MappedPageFactoryImpl;
+import com.leansoft.bigqueue.utils.Calculator;
+import com.leansoft.bigqueue.utils.FileUtil;
+
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
@@ -9,12 +15,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-
-import com.leansoft.bigqueue.page.IMappedPage;
-import com.leansoft.bigqueue.page.IMappedPageFactory;
-import com.leansoft.bigqueue.page.MappedPageFactoryImpl;
-import com.leansoft.bigqueue.utils.Calculator;
-import com.leansoft.bigqueue.utils.FileUtil;
 
 /**
  * A big array implementation supporting sequential append and random read.
@@ -78,7 +78,7 @@ public class BigArrayImpl implements IBigArray {
 	String arrayDirectory;
 	
 	// factory for index page management(acquire, release, cache)
-	IMappedPageFactory indexPageFactory; 
+	IMappedPageFactory indexPageFactory;
 	// factory for data page management(acquire, release, cache)
 	IMappedPageFactory dataPageFactory;
 	// factory for meta data page management(acquire, release, cache)
@@ -105,7 +105,7 @@ public class BigArrayImpl implements IBigArray {
 	// global lock for array read and write management
     final ReadWriteLock arrayReadWritelock = new ReentrantReadWriteLock();
     final Lock arrayReadLock = arrayReadWritelock.readLock();
-    final Lock arrayWriteLock = arrayReadWritelock.writeLock(); 
+    final Lock arrayWriteLock = arrayReadWritelock.writeLock();
 	
 	/**
 	 * 
@@ -157,17 +157,26 @@ public class BigArrayImpl implements IBigArray {
 	
 	void commonInit() throws IOException {
 		// initialize page factories
-		this.indexPageFactory = new MappedPageFactoryImpl(INDEX_PAGE_SIZE, 
+		this.indexPageFactory = new MappedPageFactoryImpl(INDEX_PAGE_SIZE,
 				this.arrayDirectory + INDEX_PAGE_FOLDER, 
 				INDEX_PAGE_CACHE_TTL);
-		this.dataPageFactory = new MappedPageFactoryImpl(DATA_PAGE_SIZE, 
+		this.dataPageFactory = new MappedPageFactoryImpl(DATA_PAGE_SIZE,
 				this.arrayDirectory + DATA_PAGE_FOLDER, 
 				DATA_PAGE_CACHE_TTL);
 		// the ttl does not matter here since meta data page is always cached
-		this.metaPageFactory = new MappedPageFactoryImpl(META_DATA_PAGE_SIZE, 
+		this.metaPageFactory = new MappedPageFactoryImpl(META_DATA_PAGE_SIZE,
 				this.arrayDirectory + META_DATA_PAGE_FOLDER, 
 				10 * 1000/*does not matter*/);
 		
+		// initialize array indexes
+		initArrayIndex();
+
+		// initialize data page indexes
+		initDataPageIndex();
+	}
+
+	@Override
+	public void freshHead() throws IOException {
 		// initialize array indexes
 		initArrayIndex();
 
@@ -538,7 +547,7 @@ public class BigArrayImpl implements IBigArray {
 				long lowPartTimestamp = this.getTimestamp(lowPartClosestIndex);
 				long highPartTimestamp = this.getTimestamp(highPartClosetIndex);
 				
-				closestIndex = Math.abs(timestamp - lowPartTimestamp) < Math.abs(timestamp - highPartTimestamp) 
+				closestIndex = Math.abs(timestamp - lowPartTimestamp) < Math.abs(timestamp - highPartTimestamp)
 						? lowPartClosestIndex : highPartClosetIndex;
 			}
 			
@@ -548,7 +557,7 @@ public class BigArrayImpl implements IBigArray {
 		}
 	}
 	
-	private long closestBinarySearch(long low, long high, long timestamp) throws IOException {    		
+	private long closestBinarySearch(long low, long high, long timestamp) throws IOException {
         long mid;
         long sum = low + high;
         if (sum < 0) { // overflow
@@ -661,7 +670,7 @@ public class BigArrayImpl implements IBigArray {
 	}
 	
 	// inner getBackFileSize
-	private long _getBackFileSize() throws IOException {	
+	private long _getBackFileSize() throws IOException {
 		return this.indexPageFactory.getBackPageFileSize() + this.dataPageFactory.getBackPageFileSize();
 	}
 }

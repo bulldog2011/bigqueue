@@ -1,16 +1,16 @@
 package com.leansoft.bigqueue;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.leansoft.bigqueue.page.IMappedPage;
 import com.leansoft.bigqueue.page.IMappedPageFactory;
 import com.leansoft.bigqueue.page.MappedPageFactoryImpl;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 
 /**
@@ -248,6 +248,11 @@ public class BigQueueImpl implements IBigQueue {
         } else {
             return Long.MAX_VALUE - qFront + 1 + qRear;
         }
+    }
+
+    @Override
+    public void freshHead() throws IOException {
+        this.innerArray.freshHead();
     }
 
 

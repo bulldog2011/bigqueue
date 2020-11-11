@@ -164,4 +164,10 @@ public interface IBigArray extends Closeable {
 	 * @throws IOException if there is any IO error
 	 */
 	int getItemLength(long index) throws IOException;
+
+	/**
+	 * refresh array meta data to find remote message
+	 * @since 0.7.4
+	 */
+	public void freshHead() throws IOException;
 }
