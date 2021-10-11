@@ -2,9 +2,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.platform</groupId>
+    <groupId>com.platform.bigqueue</groupId>
     <artifactId>bigqueue</artifactId>
-    <version>0.7.3-SNAPSHOT</version>
+    <version>0.7.3</version>
     <packaging>jar</packaging>
 
     <name>bigqueue</name>
@@ -37,15 +37,9 @@
 
     <distributionManagement>
         <repository>
-            <id>github.release.repo</id>
-            <name>Release Repository</name>
-            <url>file:///dev/bulldog-repo/repo/releases</url>
+            <id>clojars</id>
+            <url>https://repo.clojars.org/</url>
         </repository>
-        <snapshotRepository>
-            <id>github.snapshot.repo</id>
-            <name>Snapshot Repository</name>
-            <url>file:///dev/bulldog-repo/repo/snapshots</url>
-        </snapshotRepository>
     </distributionManagement>
 
     <properties>
@@ -102,8 +96,8 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
+                    <source>9</source>
+                    <target>9</target>
                     <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>
