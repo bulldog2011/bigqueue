@@ -4,7 +4,7 @@
 
     <groupId>org.clojars.nitishgoyal13</groupId>
     <artifactId>bigqueue</artifactId>
-    <version>0.7.4-SNAPSHOT</version>
+    <version>0.7.4</version>
     <packaging>jar</packaging>
 
     <name>bigqueue</name>
