@@ -63,20 +63,20 @@ public class MappedPageImpl implements IMappedPage, Closeable {
 		}
 	}
 
-	public byte[] getLocal(int position, int length) {
-		ByteBuffer buf = this.getLocal(position);
-		byte[] data = new byte[length];
-		buf.get(data);
-		return data;
-	}
-	
 	@Override
 	public ByteBuffer getLocal(int position) {
 		ByteBuffer buf = this.threadLocalBuffer.get();
 		buf.position(position);
 		return buf;
 	}
-	
+
+	public byte[] getLocal(int position, int length) {
+		ByteBuffer buf = this.getLocal(position);
+		byte[] data = new byte[length];
+		buf.get(data);
+		return data;
+	}
+
 	private static void unmap(MappedByteBuffer buffer)
 	{
 		Cleaner.clean(buffer);
