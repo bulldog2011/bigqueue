@@ -3,6 +3,7 @@ package com.leansoft.bigqueue.page;
 import java.io.Closeable;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 
@@ -10,44 +11,44 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MappedPageImpl implements IMappedPage, Closeable {
-	
+
 	private final static Logger logger = LoggerFactory.getLogger(MappedPageImpl.class);
-	
+
 	private ThreadLocalByteBuffer threadLocalBuffer;
 	private volatile boolean dirty = false;
 	private volatile boolean closed = false;
 	private String pageFile;
 	private long index;
-	
+
 	public MappedPageImpl(MappedByteBuffer mbb, String pageFile, long index) {
 		this.threadLocalBuffer = new ThreadLocalByteBuffer(mbb);
 		this.pageFile = pageFile;
 		this.index = index;
 	}
-	
+
 	public void close() throws IOException {
 		synchronized(this) {
 			if (closed) return;
 
 			flush();
-			
+
 			MappedByteBuffer srcBuf = (MappedByteBuffer)threadLocalBuffer.getSourceBuffer();
 			unmap(srcBuf);
-			
+
 			this.threadLocalBuffer = null; // hint GC
-			
+
 			closed = true;
 			if (logger.isDebugEnabled()) {
 				logger.debug("Mapped page for " + this.pageFile + " was just unmapped and closed.");
 			}
 		}
 	}
-	
+
 	@Override
 	public void setDirty(boolean dirty) {
 		this.dirty = dirty;
 	}
-	
+
 	@Override
 	public void flush() {
 		synchronized(this) {
@@ -69,19 +70,19 @@ public class MappedPageImpl implements IMappedPage, Closeable {
 		buf.get(data);
 		return data;
 	}
-	
+
 	@Override
 	public ByteBuffer getLocal(int position) {
 		ByteBuffer buf = this.threadLocalBuffer.get();
-		buf.position(position);
+		((Buffer)buf).position(position);
 		return buf;
 	}
-	
+
 	private static void unmap(MappedByteBuffer buffer)
 	{
 		Cleaner.clean(buffer);
 	}
-	
+
     /**
      * Helper class allowing to clean direct buffers.
      */
@@ -120,18 +121,18 @@ public class MappedPageImpl implements IMappedPage, Closeable {
             }
         }
     }
-    
+
     private static class ThreadLocalByteBuffer extends ThreadLocal<ByteBuffer> {
     	private ByteBuffer _src;
-    	
+
     	public ThreadLocalByteBuffer(ByteBuffer src) {
     		_src = src;
     	}
-    	
+
     	public ByteBuffer getSourceBuffer() {
     		return _src;
     	}
-    	
+
     	@Override
     	protected synchronized ByteBuffer initialValue() {
     		ByteBuffer dup = _src.duplicate();
@@ -143,7 +144,7 @@ public class MappedPageImpl implements IMappedPage, Closeable {
 	public boolean isClosed() {
 		return closed;
 	}
-	
+
 	public String toString() {
 		return "Mapped page for " + this.pageFile + ", index = " + this.index + ".";
 	}
